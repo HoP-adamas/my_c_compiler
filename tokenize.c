@@ -14,6 +14,9 @@ void error(char *fmt, ...) {
     exit(1);
 }
 
+
+
+
 // If the next token is the symbol we expect,
 // consume one token and return true else return false.
 bool consume(char op) {
@@ -28,7 +31,7 @@ bool consume(char op) {
 // consumes one token else reports an error.
 void expect(char op) {
     if (token->kind != TK_RESERVED || token->str[0] != op) {
-        error("next token is not '%c'", op);
+        error("next token is expected '%c'", op);
     }
     token = token->next;
 }
@@ -37,7 +40,7 @@ void expect(char op) {
 // consumes one token and return this number else reports an error
 int expect_number(void) {
     if (token->kind != TK_NUM) {
-        error("next token is not a number");
+        error("next token is expected a number");
     }
     int val = token->val;
     token = token->next;
