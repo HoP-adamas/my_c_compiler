@@ -24,6 +24,25 @@ struct Token {
     char *str;      // token string
 };
 
+// Kinds of node of abstruct syntax tree (AST)
+typedef enum {
+    ND_ADD, // +
+    ND_SUB, // -
+    ND_MUL, // *
+    ND_DIV, // /
+    ND_NUM, // Integer
+} NodeKind;
+
+typedef struct Node Node;
+
+// type of node of AST
+struct Node {
+    NodeKind kind;  // type of the node
+    Node *lhs;      // left-hand side of the node
+    Node *rhs;      // right-hand side of the node
+    int val;        // use only if kind is ND_SUM
+};
+
 
 void error(char *fmt, ...);
 bool consume(char op);
