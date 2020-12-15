@@ -22,6 +22,7 @@ struct Token {
     Token *next;    // next input token
     int val;        // the value of token when the kind is TK_NUM
     char *str;      // token string
+    int len;        // length of token
 };
 
 // Kinds of node of abstruct syntax tree (AST)
@@ -30,6 +31,10 @@ typedef enum {
     ND_SUB, // -
     ND_MUL, // *
     ND_DIV, // /
+    ND_EQ,  // ==
+    ND_NE,  // !=
+    ND_LT,  // <
+    ND_LE,  // <=
     ND_NUM, // Integer
 } NodeKind;
 
@@ -46,11 +51,11 @@ struct Node {
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
-bool consume(char op);
-void expect(char op);
+bool consume(char *op);
+void expect(char *op);
 int expect_number(void);
 bool at_eof(void);
-Token *new_token(TokenKind kind, Token *cur, char *str);
+Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 Token *tokenize(char *p);
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);

@@ -37,20 +37,66 @@ Node *new_node_num(int val) {
 }
 
 Node *expr(void);
+Node *equality(void);
+Node *relational(void);
+Node *add(void);
 Node *mul(void);
 Node *unary(void);
 Node *primary(void);
 
 
-// creates expr := mul ("+" mul|"-" mul)*
+// creates expr := equality
 Node *expr(void) {
+    return equality();
+}
+
+// creates equality := relational ("==" relational | "!=" relational)*
+Node *equality(void) {
+    Node *node = relational();
+    for (; ; ) {
+        if (consume("==")) {
+            node = new_node(ND_EQ, node, relational());
+        }
+        else if (consume("!=")) {
+            node = new_node(ND_NE, node, relational());
+        }
+        else {
+            return node;
+        }
+    }
+}
+
+// creates relational := add ("<" add | "<=" add | ">" add | ">=" add)*
+Node *relational(void) {
+    Node *node = add();
+    for (; ; ) {
+        if (consume("<")) {
+            node = new_node(ND_LT, node, add());
+        }
+        else if (consume("<=")) {
+            node = new_node(ND_LE, node, add());
+        }
+        else if (consume(">")) {
+            node = new_node(ND_LT, add(), node);
+        }
+        else if (consume(">=")) {
+            node = new_node(ND_LE, add(), node);
+        }
+        else {
+            return node;
+        }
+    }
+}
+
+// creates add := mul ("+" mul | "-" mul)*
+Node *add(void) {
     Node *node = mul();
 
     for (; ; ) {
-        if (consume('+')){
+        if (consume("+")){
             node = new_node(ND_ADD, node, mul());
         }
-        else if (consume('-')) {
+        else if (consume("-")) {
             node = new_node(ND_SUB, node, mul());
         }
         else {
@@ -63,10 +109,10 @@ Node *expr(void) {
 Node *mul(void) {
     Node *node = unary();
     for (; ; ) {
-        if (consume('*')){
+        if (consume("*")){
             node = new_node(ND_MUL, node, unary());
         }
-        else if (consume('/')) {
+        else if (consume("/")) {
             node = new_node(ND_DIV, node, unary());
         }
         else {
@@ -77,10 +123,10 @@ Node *mul(void) {
 
 // creates unary := ('+'|'-')? primary
 Node *unary(void) {
-    if (consume('+')) {
+    if (consume("+")) {
         return unary();
     }
-    if (consume('-')) {
+    if (consume("-")) {
         return new_node(ND_SUB, new_node_num(0), unary());
     }
     return primary();
@@ -88,9 +134,9 @@ Node *unary(void) {
 
 // creates primary := num | "(" expr ")"
 Node *primary(void) {
-    if (consume('(')) {
+    if (consume("(")) {
         Node *node = expr();
-        expect(')');
+        expect(")");
         return node;
     }
     return new_node_num(expect_number());
@@ -122,6 +168,28 @@ void gen(Node *node) {
             printf("  cqo\n");
             printf("  idiv rdi\n");
             break;
+        case ND_EQ:
+            printf("  cmp rax, rdi\n");
+            printf("  sete al\n");
+            printf("  movzb rax, al\n");
+            break;
+        case ND_NE:
+            printf("  cmp rax, rdi\n");
+            printf("  setne al\n");
+            printf("  movzb rax, al\n");
+            break;
+        case ND_LT:
+            printf("  cmp rax, rdi\n");
+            printf("  setl al\n");
+            printf("  movzb rax, al\n");
+            break;
+
+        case ND_LE:
+            printf("  cmp rax, rdi\n");
+            printf("  setle al\n");
+            printf("  movzb rax, al\n");
+            break;
+
     }
     printf("  push rax\n");
 }
