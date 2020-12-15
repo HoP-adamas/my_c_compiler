@@ -45,9 +45,17 @@ struct Node {
 
 
 void error(char *fmt, ...);
+void error_at(char *loc, char *fmt, ...);
 bool consume(char op);
 void expect(char op);
 int expect_number(void);
 bool at_eof(void);
 Token *new_token(TokenKind kind, Token *cur, char *str);
 Token *tokenize(char *p);
+
+Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
+Node *new_node_num(int val);
+Node *expr(void);
+Node *mul(void);
+Node *primary(void);
+void gen(Node *node);
