@@ -104,12 +104,15 @@ Node *unary(void) {
     return primary();
 }
 
-// creates primary := num | "(" expr ")"
+// creates primary := num | ident | "(" expr ")"
 Node *primary(void) {
     if (consume("(")) {
         Node *node = expr();
         expect(")");
         return node;
     }
+    // TODO add ident
+
+    
     return new_node_num(expect_number());
 }

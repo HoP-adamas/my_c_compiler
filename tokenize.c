@@ -108,6 +108,12 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        // identifier (only small character)
+        if ('a' <= *p && *p <= 'z') {
+            cur = new_token(TK_IDENT, cur, p++, 1);
+            continue;
+        }
+
         // Integer literal
         if (isdigit(*p)) {
             cur = new_token(TK_NUM, cur, p, 0);
