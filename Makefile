@@ -3,7 +3,7 @@ SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 
 9cc: $(OBJS)
-		$(CC) -o 9cc $(OBJS) $(LDFLAGS)
+		$(CC) -o $@ $^ $(LDFLAGS)
 
 $(OBJS): 9cc.h
 

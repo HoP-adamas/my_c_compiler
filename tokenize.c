@@ -1,5 +1,7 @@
 #include "9cc.h"
 
+// Input string
+static char *current_input;
 
 // the token we focus on
 Token *token;
@@ -14,7 +16,24 @@ void error(char *fmt, ...) {
     exit(1);
 }
 
+static void verror_at(char *loc, char *fmt, va_list ap) {
 
+    int pos = loc - current_input;
+
+    fprintf(stderr, "%s\n", current_input);
+    fprintf(stderr, "%*s", pos, "");
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+}
+// Reports an error location and exit.
+void error_at(char *loc, char *fmt, ...) {
+
+    va_list ap;
+    va_start(ap, fmt);
+    verror_at(loc, fmt, ap);
+    exit(1);
+}
 
 
 // If the next token is the symbol we expect,
@@ -31,7 +50,7 @@ bool consume(char *op) {
 // consumes one token else reports an error.
 void expect(char *op) {
     if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len)) {
-        error("next token is expected '%c'", op);
+        error_at(token->str, "next token is expected '%c'", op);
     }
     token = token->next;
 }
@@ -40,7 +59,7 @@ void expect(char *op) {
 // consumes one token and return this number else reports an error
 int expect_number(void) {
     if (token->kind != TK_NUM) {
-        error("next token is expected a number");
+        error_at(token->str, "next token is expected a number");
     }
     int val = token->val;
     token = token->next;
@@ -98,7 +117,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        error("cannot tokenize");
+        error_at(p, "invalid token");
     }
 
     new_token(TK_EOF, cur, p, 0);
