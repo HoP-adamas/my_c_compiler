@@ -55,6 +55,15 @@ struct Node {
     // char name;       // use only if kind is ND_LVAR
 };
 
+typedef struct LVar LVar;
+
+struct LVar {
+    LVar *next;     // next local variable or NULL
+    char *name;     // the name of local variable
+    int len;        // the length of the name
+    int offset;     // the offset from RBP
+};
+
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
@@ -87,3 +96,5 @@ extern Token *token;
 extern char *user_input;
 
 extern Node *code[100];
+
+LVar *locals;
