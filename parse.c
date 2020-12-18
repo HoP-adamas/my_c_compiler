@@ -17,9 +17,43 @@ Node *new_node_num(int val) {
     return node;
 }
 
-// creates expr := equality
+Node *new_node_lvar(char name) {
+    Node *node = new_node(ND_LVAR, NULL, NULL);
+    node->offset = (name - 'a' + 1)*8;
+    // node->name = name;
+    return node;
+}
+
+
+
+
+// creates expr := assign
 Node *expr(void) {
-    return equality();
+    return assign();
+}
+
+// stmt := expr ";"
+Node *stmt(void) {
+    Node *node = expr();
+    expect(";");
+    return node;
+}
+
+void program(void) {
+    int i = 0;
+    while (!at_eof()) {
+        code[i++] = stmt();
+    }
+    code[i] = NULL;
+}
+
+// creates assign := equality ("=" assign)?
+Node *assign(void) {
+    Node *node = equality();
+    if (consume("=")) {
+        node = new_node(ND_ASSIGN, node, assign());
+    }
+    return node;
 }
 
 // creates equality := relational ("==" relational | "!=" relational)*
@@ -112,7 +146,10 @@ Node *primary(void) {
         return node;
     }
     // TODO add ident
+    Token *tok = consume_ident();
+    if (tok) {
+        return new_node_lvar(*tok->str);
+    }
 
-    
     return new_node_num(expect_number());
 }

@@ -26,17 +26,21 @@ struct Token {
     int len;        // length of token
 };
 
+
+
 // Kinds of node of abstruct syntax tree (AST)
 typedef enum {
-    ND_ADD, // +
-    ND_SUB, // -
-    ND_MUL, // *
-    ND_DIV, // /
-    ND_EQ,  // ==
-    ND_NE,  // !=
-    ND_LT,  // <
-    ND_LE,  // <=
-    ND_NUM, // Integer
+    ND_ADD,     // +
+    ND_SUB,     // -
+    ND_MUL,     // *
+    ND_DIV,     // /
+    ND_EQ,      // ==
+    ND_NE,      // !=
+    ND_LT,      // <
+    ND_LE,      // <=
+    ND_ASSIGN,  // =
+    ND_NUM,     // Integer
+    ND_LVAR,    // local one letter variable
 } NodeKind;
 
 typedef struct Node Node;
@@ -46,13 +50,16 @@ struct Node {
     NodeKind kind;  // type of the node
     Node *lhs;      // left-hand side of the node
     Node *rhs;      // right-hand side of the node
-    int val;        // use only if kind is ND_SUM
+    int val;        // use only if kind is ND_NUM
+    int offset;     // use only if kind is ND_LVAR
+    // char name;       // use only if kind is ND_LVAR
 };
 
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
+Token *consume_ident(void);
 void expect(char *op);
 int expect_number(void);
 bool at_eof(void);
@@ -73,3 +80,10 @@ Node *primary(void);
 
 // codegen.c
 void gen(Node *node);
+
+// the token we focus on
+extern Token *token;
+
+extern char *user_input;
+
+extern Node *code[100];

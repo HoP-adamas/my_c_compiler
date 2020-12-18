@@ -1,10 +1,9 @@
 #include "9cc.h"
 
-// Input string
-static char *current_input;
-
 // the token we focus on
 Token *token;
+
+char *user_input;
 
 // reports an error and exit.
 // same args of printf()
@@ -18,9 +17,9 @@ void error(char *fmt, ...) {
 
 static void verror_at(char *loc, char *fmt, va_list ap) {
 
-    int pos = loc - current_input;
+    int pos = loc - user_input;
 
-    fprintf(stderr, "%s\n", current_input);
+    fprintf(stderr, "%s\n", user_input);
     fprintf(stderr, "%*s", pos, "");
     fprintf(stderr, "^ ");
     vfprintf(stderr, fmt, ap);
@@ -44,6 +43,16 @@ bool consume(char *op) {
     }
     token = token->next;
     return true;
+}
+
+// consume the current token if it is identifier
+Token *consume_ident(void) {
+    if (token->kind != TK_IDENT) {
+        return NULL;
+    }
+    Token *t = token;
+    token = token->next;
+    return t;
 }
 
 // If the next token is the symbol we expect,
