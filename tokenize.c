@@ -93,6 +93,14 @@ bool startswith(char *p, char *q) {
     return memcmp(p, q, strlen(q)) == 0;
 }
 
+bool is_alpha(char c) {
+    return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
+}
+
+bool is_alnum(char c) {
+    return is_alpha(c) || ('0' <= c && c <= '9');
+}
+
 // tokenize input string and return it
 Token *tokenize(char *p) {
     Token head;
@@ -112,14 +120,23 @@ Token *tokenize(char *p) {
             continue;
         }
         // Single-letter punctuator
-        if (strchr("+-*/()<>", *p)) {
+        if (strchr("+-*/()<>=", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
 
-        // identifier (only small character)
-        if ('a' <= *p && *p <= 'z') {
-            cur = new_token(TK_IDENT, cur, p++, 1);
+        // Identifier multi letter
+        // rule 1: the first letter of an identifier does not a number
+        // rule 2: "_" is treated as an alphabet
+        // rule 3: after second letter, we can use alphabet and number
+
+        // check whether the first letter is alphabet
+        if (is_alpha(*p)) {
+            char *q = p++;
+            while (is_alnum(*p)) {
+                p++;
+            }
+            cur = new_token(TK_IDENT, cur, q, p-q);
             continue;
         }
 
