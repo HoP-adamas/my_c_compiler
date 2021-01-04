@@ -17,15 +17,22 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *new_node_lvar(char name) {
+Node *new_node_lvar(LVar *var) {
     Node *node = new_node(ND_LVAR, NULL, NULL);
-    node->offset = (name - 'a' + 1)*8;
-    // node->name = name;
+    node->var = var;
     return node;
 }
 
+// search variable by its name. if it is not be found, return NULL.
+LVar *find_LVar(Token *tok) {
 
-
+    for (LVar *var = locals; var; var = var->next) {
+        if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {
+            return var;
+        }
+    }
+    return NULL;
+}
 
 // creates expr := assign
 Node *expr(void) {
@@ -148,7 +155,24 @@ Node *primary(void) {
     // TODO add ident
     Token *tok = consume_ident();
     if (tok) {
-        return new_node_lvar(*tok->str);
+
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_LVAR;
+
+        LVar *lvar = find_LVar(tok);
+        if (lvar) {
+            node->offset = lvar->offset;
+        }
+        else {
+            lvar = calloc(1,sizeof(LVar));
+            lvar->next = locals;
+            lvar->name = tok->str;
+            lvar->len = tok->len;
+            lvar->offset = locals->offset + 8;
+            node->offset = lvar->offset;
+            locals = lvar;
+        }
+        return node;
     }
 
     return new_node_num(expect_number());

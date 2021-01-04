@@ -52,7 +52,7 @@ struct Node {
     Node *rhs;      // right-hand side of the node
     int val;        // use only if kind is ND_NUM
     int offset;     // use only if kind is ND_LVAR
-    // char name;       // use only if kind is ND_LVAR
+    LVar *var;
 };
 
 typedef struct LVar LVar;
@@ -78,6 +78,7 @@ Token *tokenize(char *p);
 // parse.c
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
+Node *new_node_lvar(LVar *var);
 Node *expr(void);
 Node *equality(void);
 Node *relational(void);
@@ -97,4 +98,4 @@ extern char *user_input;
 
 extern Node *code[100];
 
-LVar *locals;
+extern LVar *locals;
