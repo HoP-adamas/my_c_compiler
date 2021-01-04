@@ -76,6 +76,7 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 Token *tokenize(char *p);
 
 // parse.c
+LVar *find_LVar(Token *tok);
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *new_node_lvar(LVar *var);
