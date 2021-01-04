@@ -125,6 +125,11 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        // return token
+        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+            continue;
+        }
+
         // Identifier multi letter
         // rule 1: the first letter of an identifier does not a number
         // rule 2: "_" is treated as an alphabet

@@ -12,6 +12,7 @@ typedef enum {
     TK_IDENT,       // identifier
     TK_NUM,         // Integer Token
     TK_EOF,         // Token of End Of File
+    TK_RETURN,      // token of return
 
 } TokenKind;
 

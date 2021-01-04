@@ -39,7 +39,7 @@ Node *expr(void) {
     return assign();
 }
 
-// stmt := expr ";"
+// stmt := expr ";" | "return" expr ";"
 Node *stmt(void) {
     Node *node = expr();
     expect(";");
