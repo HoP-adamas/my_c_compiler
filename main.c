@@ -1,5 +1,6 @@
 #include "9cc.h"
 
+Node *code[100];
 
 int main(int argc, char **argv) {
 
@@ -7,7 +8,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "invalid args\n");
         return 1;
     }
-
+    locals = NULL;
     // tokenize and parse input
     user_input = argv[1];
     token = tokenize(user_input);

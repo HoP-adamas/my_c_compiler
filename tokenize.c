@@ -55,6 +55,15 @@ Token *consume_ident(void) {
     return t;
 }
 
+Token *consume_return(void) {
+    if (token->kind != TK_RETURN) {
+        return NULL;
+    }
+    Token *t = token;
+    token = token->next;
+    return t;
+}
+
 // If the next token is the symbol we expect,
 // consumes one token else reports an error.
 void expect(char *op) {
@@ -120,28 +129,15 @@ Token *tokenize(char *p) {
             continue;
         }
         // Single-letter punctuator
-        if (strchr("+-*/()<>=", *p)) {
+        if (strchr("+-*/()<>=;", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
 
         // return token
         if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
-            continue;
-        }
-
-        // Identifier multi letter
-        // rule 1: the first letter of an identifier does not a number
-        // rule 2: "_" is treated as an alphabet
-        // rule 3: after second letter, we can use alphabet and number
-
-        // check whether the first letter is alphabet
-        if (is_alpha(*p)) {
-            char *q = p++;
-            while (is_alnum(*p)) {
-                p++;
-            }
-            cur = new_token(TK_IDENT, cur, q, p-q);
+            cur = new_token(TK_RETURN, cur, p, 6);
+            p += 6;
             continue;
         }
 
@@ -153,6 +149,24 @@ Token *tokenize(char *p) {
             cur->len = p - q;   // length of Integer
             continue;
         }
+
+        // Identifier multi letter
+        // rule 1: the first letter of an identifier does not a number
+        // rule 2: "_" is treated as an alphabet
+        // rule 3: after second letter, we can use alphabet and number
+
+        // check whether the first letter is alphabet
+        if (is_alpha(*p)) {
+            char *q = p;
+            do {
+                p++;
+            }
+            while (is_alnum(*p));
+            cur = new_token(TK_IDENT, cur, q, p-q);
+            continue;
+        }
+
+        
 
         error_at(p, "invalid token");
     }

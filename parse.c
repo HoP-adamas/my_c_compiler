@@ -1,5 +1,8 @@
 #include "9cc.h"
 
+LVar *locals;
+Node *code[100];
+
 // creates a new node
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
@@ -41,8 +44,22 @@ Node *expr(void) {
 
 // stmt := expr ";" | "return" expr ";"
 Node *stmt(void) {
-    Node *node = expr();
-    expect(";");
+    Node *node;
+
+    Token *tok = consume_return();
+
+    if (tok) {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_RETURN;
+        node->lhs = expr();
+    }
+    else {
+        node = expr();
+    }
+    
+    if (!consume(";")) {
+        error_at(token->str, "this token is not ';'");
+    }
     return node;
 }
 
@@ -168,12 +185,23 @@ Node *primary(void) {
             lvar->next = locals;
             lvar->name = tok->str;
             lvar->len = tok->len;
-            lvar->offset = locals->offset + 8;
+            if (locals == NULL) {
+                lvar->offset = 8;
+            }
+            else {
+                lvar->offset = locals->offset + 8;
+            }
             node->offset = lvar->offset;
             locals = lvar;
         }
         return node;
     }
 
-    return new_node_num(expect_number());
+    if (token->kind == TK_NUM) {
+        Node *node = new_node_num(token->val);
+        token = token->next;
+        return node;
+    }
+
+    error("expected an expression\n");
 }

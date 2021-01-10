@@ -11,8 +11,8 @@ typedef enum {
     TK_RESERVED,    // symbol
     TK_IDENT,       // identifier
     TK_NUM,         // Integer Token
-    TK_EOF,         // Token of End Of File
     TK_RETURN,      // token of return
+    TK_EOF,         // Token of End Of File
 
 } TokenKind;
 
@@ -42,8 +42,18 @@ typedef enum {
     ND_ASSIGN,  // =
     ND_NUM,     // Integer
     ND_LVAR,    // local one letter variable
+    ND_RETURN,  // return
 } NodeKind;
 
+// Local variable
+typedef struct LVar LVar;
+
+struct LVar {
+    LVar *next;     // next local variable or NULL
+    char *name;     // the name of local variable
+    int len;        // the length of the name
+    int offset;     // the offset from RBP
+};
 typedef struct Node Node;
 
 // type of node of AST
@@ -56,20 +66,12 @@ struct Node {
     LVar *var;
 };
 
-typedef struct LVar LVar;
-
-struct LVar {
-    LVar *next;     // next local variable or NULL
-    char *name;     // the name of local variable
-    int len;        // the length of the name
-    int offset;     // the offset from RBP
-};
-
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
 Token *consume_ident(void);
+Token *consume_return(void);
 void expect(char *op);
 int expect_number(void);
 bool at_eof(void);
@@ -81,7 +83,10 @@ LVar *find_LVar(Token *tok);
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *new_node_lvar(LVar *var);
+Node *stmt(void);
+void program(void);
 Node *expr(void);
+Node *assign(void);
 Node *equality(void);
 Node *relational(void);
 Node *add(void);
