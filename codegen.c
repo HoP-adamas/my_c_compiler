@@ -1,5 +1,7 @@
 #include "9cc.h"
 
+static int label_count = 0;
+
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR) {
         error("Substitution of the left value does not a variable");
@@ -11,6 +13,9 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
+
+    int cnt = label_count;
+    label_count++;
 
     switch (node->kind) {
     case ND_NUM:
@@ -35,14 +40,24 @@ void gen(Node *node) {
         gen(node->lhs);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .LelseXXX\n");
+        printf("  je .Lelse%d\n", cnt);
         gen(node->rhs);
-        printf("  jmp .LendXXX\n");
-        printf(".LelseXXX:\n");
+        printf("  jmp .Lend%d\n", cnt);
+        printf(".Lelse%d:\n", cnt);
         if (node->els) {
             gen(node->els);
         }
-        printf(".LendXXX:\n");
+        printf(".Lend%d:\n", cnt);
+        return;
+    case ND_WHILE:
+        printf(".Lbegin%d:\n", cnt);
+        gen(node->lhs);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  je .Lend%d\n", cnt);
+        gen(node->rhs);
+        printf("  jmp .Lbegin%d\n", cnt);
+        printf(".Lend%d:\n", cnt);
         return;
     case ND_RETURN:
         gen(node->lhs);

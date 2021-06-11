@@ -57,9 +57,14 @@ assert 1 'return 1; 2; 3;'
 assert 2 '1; return 2; 3;'
 assert 3 '1; 2; return 3;'
 
+# test of if
 assert 3 'a = 3; if (a == 3) return a; return 5;'
 assert 5 'a = 3; if (a != 3) return a; return 5;'
 
+# test of if else
 assert 5 'a = 3; if (a != 3) return a; else return 5; return 2;'
+
+# test of while
+assert 5 'i = 0; while (i < 5) i = i + 1; return i;'
 
 echo -e "\e[32mOK\e[m"

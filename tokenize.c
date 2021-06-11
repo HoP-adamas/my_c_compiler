@@ -82,6 +82,15 @@ Token *consume_else(void) {
     return t;
 }
 
+Token *consume_while(void) {
+    if (token->kind != TK_WHILE) {
+        return NULL;
+    }
+    Token *t = token;
+    token = token->next;
+    return t;
+}
+
 // If the next token is the symbol we expect,
 // consumes one token else reports an error.
 void expect(char *op) {
@@ -172,6 +181,13 @@ Token *tokenize(char *p) {
             p += 4;
             continue;
         } 
+
+        // while token
+        if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
+            cur = new_token(TK_WHILE, cur, p, 5);
+            p += 5;
+            continue;
+        }
 
         // Integer literal
         if (isdigit(*p)) {

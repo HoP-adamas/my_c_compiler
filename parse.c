@@ -39,10 +39,10 @@ LVar *find_LVar(Token *tok) {
 
 /* BNF:
    program    = stmt*
-   stmt       = expr ";" | return expr ";"
    stmt       = expr ";"
-              | "if" "(" expr ")" stmt
-              | return expr ";"
+              | "if" "(" expr ")" stmt ("else" stmt)?
+              | "while" "(" expr ")" stmt
+              | "for" "(" expr? ";" expr? ";" expr? ")" stmt
    expr       = assign
    assign     = equality ("=" assign)?
    equality   = relational ("==" relational | "!=" relational)*
@@ -62,7 +62,12 @@ Node *expr(void) {
     return assign();
 }
 
-// stmt := expr ";" | "return" expr ";"
+/* stmt    = expr ";"
+           | "if" "(" expr ")" stmt ("else" stmt)?
+           | "while" "(" expr ")" stmt
+           | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+
+*/
 Node *stmt(void) {
     Node *node;
 
@@ -79,6 +84,17 @@ Node *stmt(void) {
         if (tok) {
             node->els = stmt();
         }
+        return node;
+    }
+
+    tok = consume_while();
+    if (tok) {
+        expect("(");
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_WHILE;
+        node->lhs = expr();
+        expect(")");
+        node->rhs = stmt();
         return node;
     }
     tok = consume_return();
