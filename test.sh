@@ -67,4 +67,10 @@ assert 5 'a = 3; if (a != 3) return a; else return 5; return 2;'
 # test of while
 assert 5 'i = 0; while (i < 5) i = i + 1; return i;'
 
+# test of for
+assert 10 'sum = 0; for (i = 1; i < 5; i = i + 1) sum = sum + i; return sum;'
+assert 20 'sum = 0; for (; sum < 20;) sum = sum + 1; return sum;'
+
+assert 3 'a = 3; if (a == 1) return 1; if (a == 2) return 2; if (a == 3) return 3;'
+
 echo -e "\e[32mOK\e[m"

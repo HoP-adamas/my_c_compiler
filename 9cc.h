@@ -13,6 +13,7 @@ typedef enum {
     TK_IF,          // "if"
     TK_ELSE,        // "else"
     TK_WHILE,       // "while"
+    TK_FOR,         // "for"
     TK_NUM,         // Integer Token
     TK_RETURN,      // token of return
     TK_EOF,         // Token of End Of File
@@ -49,6 +50,7 @@ typedef enum {
     ND_IF,      // if
     ND_ELSE,    // else
     ND_WHILE,   // while
+    ND_FOR,     // for
 } NodeKind;
 
 // Local variable
@@ -92,6 +94,7 @@ Token *consume_return(void);
 Token *consume_if(void);
 Token *consume_else(void);
 Token *consume_while(void);
+Token *consume_for(void);
 void expect(char *op);
 int expect_number(void);
 bool at_eof(void);

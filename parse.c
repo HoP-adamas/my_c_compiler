@@ -97,8 +97,32 @@ Node *stmt(void) {
         node->body = stmt();
         return node;
     }
-    tok = consume_return();
 
+    tok = consume_for();
+    if (tok) {
+        expect("(");
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_FOR;
+        node->init = NULL;
+        node->cond = NULL;
+        node->inc = NULL;
+        if (!consume(";")) {
+            node->init = expr();
+            expect(";");
+        }
+        if (!consume(";")) {
+            node->cond = expr();
+            expect(";");
+        }
+        if (!consume(")")) {
+            node->inc = expr();
+            expect(")");
+        }
+        node->body = stmt();
+        return node;
+    }
+
+    tok = consume_return();
     if (tok) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_RETURN;
