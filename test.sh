@@ -57,6 +57,8 @@ assert 1 'return 1; 2; 3;'
 assert 2 '1; return 2; 3;'
 assert 3 '1; 2; return 3;'
 
+assert 3 'a = 3; if (a == 3) return a; return 5;'
+assert 5 'a = 3; if (a != 3) return a; return 5;'
 
 
 

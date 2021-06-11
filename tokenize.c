@@ -64,6 +64,15 @@ Token *consume_return(void) {
     return t;
 }
 
+Token *consume_if(void) {
+    if (token->kind != TK_IF) {
+        return NULL;
+    }
+    Token *t = token;
+    token = token->next;
+    return t;
+}
+
 // If the next token is the symbol we expect,
 // consumes one token else reports an error.
 void expect(char *op) {
@@ -138,6 +147,12 @@ Token *tokenize(char *p) {
         if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
             cur = new_token(TK_RETURN, cur, p, 6);
             p += 6;
+            continue;
+        }
+
+        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
+            cur = new_token(TK_IF, cur, p, 2);
+            p += 2;
             continue;
         }
 

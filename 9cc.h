@@ -10,6 +10,7 @@
 typedef enum {
     TK_RESERVED,    // symbol
     TK_IDENT,       // identifier
+    TK_IF,          // "if"
     TK_NUM,         // Integer Token
     TK_RETURN,      // token of return
     TK_EOF,         // Token of End Of File
@@ -43,6 +44,7 @@ typedef enum {
     ND_NUM,     // Integer
     ND_LVAR,    // local one letter variable
     ND_RETURN,  // return
+    ND_IF,      // if
 } NodeKind;
 
 // Local variable
@@ -64,6 +66,11 @@ struct Node {
     int val;        // use only if kind is ND_NUM
     int offset;     // use only if kind is ND_LVAR
     LVar *var;
+
+    // if
+    struct Node *cond;
+    struct Node *then;
+    
 };
 
 
@@ -72,6 +79,7 @@ void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
 Token *consume_ident(void);
 Token *consume_return(void);
+Token *consume_if(void);
 void expect(char *op);
 int expect_number(void);
 bool at_eof(void);
