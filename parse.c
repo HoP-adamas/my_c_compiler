@@ -74,6 +74,11 @@ Node *stmt(void) {
         node->lhs = expr();
         expect(")");
         node->rhs = stmt();
+        tok = consume_else();
+        node->els = NULL;
+        if (tok) {
+            node->els = stmt();
+        }
         return node;
     }
     tok = consume_return();

@@ -73,6 +73,15 @@ Token *consume_if(void) {
     return t;
 }
 
+Token *consume_else(void) {
+    if (token->kind != TK_ELSE) {
+        return NULL;
+    }
+    Token *t = token;
+    token = token->next;
+    return t;
+}
+
 // If the next token is the symbol we expect,
 // consumes one token else reports an error.
 void expect(char *op) {
@@ -150,11 +159,19 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        // if token
         if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
             cur = new_token(TK_IF, cur, p, 2);
             p += 2;
             continue;
         }
+
+        // else token
+        if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
+            cur = new_token(TK_ELSE, cur, p, 4);
+            p += 4;
+            continue;
+        } 
 
         // Integer literal
         if (isdigit(*p)) {

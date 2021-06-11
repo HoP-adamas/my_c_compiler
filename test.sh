@@ -60,6 +60,6 @@ assert 3 '1; 2; return 3;'
 assert 3 'a = 3; if (a == 3) return a; return 5;'
 assert 5 'a = 3; if (a != 3) return a; return 5;'
 
-
+assert 5 'a = 3; if (a != 3) return a; else return 5; return 2;'
 
 echo -e "\e[32mOK\e[m"
