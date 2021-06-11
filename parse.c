@@ -76,11 +76,11 @@ Node *stmt(void) {
         expect("(");
         node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
-        node->lhs = expr();
+        node->cond = expr();
         expect(")");
-        node->rhs = stmt();
-        tok = consume_else();
+        node->then = stmt();
         node->els = NULL;
+        tok = consume_else();
         if (tok) {
             node->els = stmt();
         }
@@ -92,9 +92,9 @@ Node *stmt(void) {
         expect("(");
         node = calloc(1, sizeof(Node));
         node->kind = ND_WHILE;
-        node->lhs = expr();
+        node->cond = expr();
         expect(")");
-        node->rhs = stmt();
+        node->body = stmt();
         return node;
     }
     tok = consume_return();

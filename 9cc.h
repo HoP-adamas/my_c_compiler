@@ -67,14 +67,19 @@ struct Node {
     NodeKind kind;  // type of the node
     Node *lhs;      // left-hand side of the node
     Node *rhs;      // right-hand side of the node
-    Node *els;      // use only if kind is ND_IF
     int val;        // use only if kind is ND_NUM
     int offset;     // use only if kind is ND_LVAR
     LVar *var;
 
-    // if
-    struct Node *cond;
-    struct Node *then;
+    // "if" ( cond ) then "else" els
+    // "for" ( init; cond; inc ) body
+    // "while" ( cond ) body
+    Node *cond;
+    Node *then;
+    Node *els;
+    Node *init;
+    Node *inc;
+    Node *body;
     
 };
 

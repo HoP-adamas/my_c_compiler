@@ -37,11 +37,11 @@ void gen(Node *node) {
         printf("  push rdi\n");
         return;
     case ND_IF:
-        gen(node->lhs);
+        gen(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
         printf("  je .Lelse%d\n", cnt);
-        gen(node->rhs);
+        gen(node->then);
         printf("  jmp .Lend%d\n", cnt);
         printf(".Lelse%d:\n", cnt);
         if (node->els) {
@@ -51,11 +51,11 @@ void gen(Node *node) {
         return;
     case ND_WHILE:
         printf(".Lbegin%d:\n", cnt);
-        gen(node->lhs);
+        gen(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
         printf("  je .Lend%d\n", cnt);
-        gen(node->rhs);
+        gen(node->body);
         printf("  jmp .Lbegin%d\n", cnt);
         printf(".Lend%d:\n", cnt);
         return;
