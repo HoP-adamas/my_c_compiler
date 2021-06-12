@@ -6,16 +6,38 @@
 #include <string.h>
 
 
+typedef struct 
+{
+    void **data;
+    int capacity;
+    int len;
+} Vector;
+
+Vector *new_vec(void);
+void vec_push(Vector *v, void *elem);
+
+typedef struct 
+{
+    Vector *keys;
+    Vector *vals;
+} Map;
+
+Map *new_map(void);
+void map_put(Map *map, char *key, void *val);
+void *map_get(Map *map, char *key);
+
+
+
 // kinds of tokens
 typedef enum {
     TK_RESERVED,    // symbol
     TK_IDENT,       // identifier
-    TK_IF,          // "if"
-    TK_ELSE,        // "else"
-    TK_WHILE,       // "while"
-    TK_FOR,         // "for"
+    // TK_IF,          // "if"
+    // TK_ELSE,        // "else"
+    // TK_WHILE,       // "while"
+    // TK_FOR,         // "for"
+    // TK_RETURN,      // token of return
     TK_NUM,         // Integer Token
-    TK_RETURN,      // token of return
     TK_EOF,         // Token of End Of File
 
 } TokenKind;
@@ -88,8 +110,8 @@ struct Node {
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
-bool consume(char *op);
-Token *consume_tokenKind(TokenKind);
+Token *peek(char *s);
+Token *consume(char *s);
 void expect(char *op);
 int expect_number(void);
 bool at_eof(void);

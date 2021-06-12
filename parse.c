@@ -73,8 +73,8 @@ Node *expr(void) {
 Node *stmt(void) {
     Node *node;
 
-    Token *tok = consume_tokenKind(TK_IF);
-    if (tok) {
+    Token *tok;
+    if (tok = consume("if")) {
         expect("(");
         node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
@@ -82,15 +82,13 @@ Node *stmt(void) {
         expect(")");
         node->then = stmt();
         node->els = NULL;
-        tok = consume_tokenKind(TK_ELSE);
-        if (tok) {
+        if (tok = consume("else")) {
             node->els = stmt();
         }
         return node;
     }
 
-    tok = consume_tokenKind(TK_WHILE);
-    if (tok) {
+    if (tok = consume("while")) {
         expect("(");
         node = calloc(1, sizeof(Node));
         node->kind = ND_WHILE;
@@ -100,8 +98,7 @@ Node *stmt(void) {
         return node;
     }
 
-    tok = consume_tokenKind(TK_FOR);
-    if (tok) {
+    if (tok = consume("for")) {
         expect("(");
         node = calloc(1, sizeof(Node));
         node->kind = ND_FOR;
@@ -124,8 +121,7 @@ Node *stmt(void) {
         return node;
     }
 
-    tok = consume_tokenKind(TK_RETURN);
-    if (tok) {
+    if (tok = consume("return")) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_RETURN;
         node->lhs = expr();

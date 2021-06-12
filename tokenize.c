@@ -5,55 +5,22 @@ Token *token;
 
 char *user_input;
 
-// reports an error and exit.
-// same args of printf()
-void error(char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    exit(1);
+
+// Returns true if the current token matches a given string.
+Token *peek(char *s) {
+  if (token->kind != TK_RESERVED || strlen(s) != token->len ||
+      memcmp(token->str, s, token->len))
+    return NULL;
+  return token;
 }
 
-static void verror_at(char *loc, char *fmt, va_list ap) {
-
-    int pos = loc - user_input;
-
-    fprintf(stderr, "%s\n", user_input);
-    fprintf(stderr, "%*s", pos, "");
-    fprintf(stderr, "^ ");
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-}
-// Reports an error location and exit.
-void error_at(char *loc, char *fmt, ...) {
-
-    va_list ap;
-    va_start(ap, fmt);
-    verror_at(loc, fmt, ap);
-    exit(1);
-}
-
-
-// If the next token is the symbol we expect,
-// consume one token and return true else return false.
-bool consume(char *op) {
-    if (token->kind != TK_RESERVED || strlen(op) != token->len|| memcmp(token->str, op, token->len)) {
-        return false;
-    }
-    token = token->next;
-    return true;
-}
-
-// consume the current token if it is identifier
-
-Token *consume_tokenKind(TokenKind kind) {
-    if (token->kind != kind) {
-        return NULL;
-    }
-    Token *t = token;
-    token = token->next;
-    return t;
+// Consumes the current token if it matches a given string.
+Token *consume(char *s) {
+  if (!peek(s))
+    return NULL;
+  Token *t = token;
+  token = token->next;
+  return t;
 }
 
 // If the next token is the symbol we expect,
@@ -102,6 +69,29 @@ bool is_alnum(char c) {
     return is_alpha(c) || ('0' <= c && c <= '9');
 }
 
+char *starts_with_reserved(char *p) {
+    // keyword
+    static char *kw[] = {"return", "if", "else", "while", "for"};
+
+    for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++) {
+        int len = strlen(kw[i]);
+        if (startswith(p, kw[i]) && !is_alnum(p[len])) {
+            return kw[i];
+        }
+    }
+
+        // Multi-letter punctuator
+    static char *ops[] = {"==", "!=", "<=", ">="};
+
+    for (int i = 0; i < sizeof(ops) / sizeof(*ops); i++) {
+        if (startswith(p, ops[i])) {
+            return ops[i];
+        }
+    }
+
+    return NULL;
+}
+
 // tokenize input string and return it
 Token *tokenize(char *p) {
     Token head;
@@ -114,50 +104,18 @@ Token *tokenize(char *p) {
             p++;
             continue;
         }
-        // Multi-letter punctuator
-        if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")) {
-            cur = new_token(TK_RESERVED, cur, p, 2);
-            p += 2;
+
+        char *kw = starts_with_reserved(p);
+        if (kw) {
+            int len = strlen(kw);
+            cur = new_token(TK_RESERVED, cur, p, len);
+            p += len;
             continue;
         }
+
         // Single-letter punctuator
-        if (strchr("+-*/()<>=;", *p)) {
+        if (strchr("+-*/()<>=;{}", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
-            continue;
-        }
-
-        // return token
-        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
-            cur = new_token(TK_RETURN, cur, p, 6);
-            p += 6;
-            continue;
-        }
-
-        // if token
-        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
-            cur = new_token(TK_IF, cur, p, 2);
-            p += 2;
-            continue;
-        }
-
-        // else token
-        if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
-            cur = new_token(TK_ELSE, cur, p, 4);
-            p += 4;
-            continue;
-        } 
-
-        // while token
-        if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
-            cur = new_token(TK_WHILE, cur, p, 5);
-            p += 5;
-            continue;
-        }
-
-        // for token
-        if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
-            cur = new_token(TK_FOR, cur, p, 3);
-            p += 3;
             continue;
         }
 
