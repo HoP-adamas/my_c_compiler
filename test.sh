@@ -74,4 +74,7 @@ assert 5 'sum = 0; for (;;sum = sum + 1) if (sum == 5) return sum;'
 
 assert 3 'a = 3; if (a == 1) return 1; if (a == 2) return 2; if (a == 3) return 3;'
 
+assert 3 '{1; {2;} return 3;}'
+assert 55 'i=0; j=0; while(i<=10) {j=i+j; i=i+1;} return j;'
+
 echo -e "\e[32mOK\e[m"

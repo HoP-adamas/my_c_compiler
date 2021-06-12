@@ -121,6 +121,23 @@ Node *stmt(void) {
         return node;
     }
 
+    if(consume("{")) {
+        Node head;
+        head.next = NULL;
+        Node *cur = &head;
+
+        while (!consume("}")) {
+            cur->next = stmt();
+            cur = cur->next;
+        }
+
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_BLOCK;
+        node->body = head.next;
+
+        return node;
+    }
+
     if (tok = consume("return")) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_RETURN;
@@ -243,7 +260,7 @@ Node *primary(void) {
         return node;
     }
     // TODO add ident
-    Token *tok = consume_tokenKind(TK_IDENT);
+    Token *tok = consume_ident();
     if (tok) {
 
         Node *node = calloc(1, sizeof(Node));

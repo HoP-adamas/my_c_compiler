@@ -23,6 +23,14 @@ Token *consume(char *s) {
   return t;
 }
 
+Token *consume_ident(void) {
+  if (token->kind != TK_IDENT)
+    return NULL;
+  Token *t = token;
+  token = token->next;
+  return t;
+}
+
 // If the next token is the symbol we expect,
 // consumes one token else reports an error.
 void expect(char *op) {

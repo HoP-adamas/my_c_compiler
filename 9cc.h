@@ -73,6 +73,7 @@ typedef enum {
     ND_ELSE,    // else
     ND_WHILE,   // while
     ND_FOR,     // for
+    ND_BLOCK,   // {...}
 } NodeKind;
 
 // Local variable
@@ -89,6 +90,7 @@ typedef struct Node Node;
 // type of node of AST
 struct Node {
     NodeKind kind;  // type of the node
+    Node *next;     // next node
     Node *lhs;      // left-hand side of the node
     Node *rhs;      // right-hand side of the node
     int val;        // use only if kind is ND_NUM
@@ -112,6 +114,7 @@ void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 Token *peek(char *s);
 Token *consume(char *s);
+Token *consume_ident(void);
 void expect(char *op);
 int expect_number(void);
 bool at_eof(void);
