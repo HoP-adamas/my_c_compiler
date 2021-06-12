@@ -46,53 +46,9 @@ bool consume(char *op) {
 }
 
 // consume the current token if it is identifier
-Token *consume_ident(void) {
-    if (token->kind != TK_IDENT) {
-        return NULL;
-    }
-    Token *t = token;
-    token = token->next;
-    return t;
-}
 
-Token *consume_return(void) {
-    if (token->kind != TK_RETURN) {
-        return NULL;
-    }
-    Token *t = token;
-    token = token->next;
-    return t;
-}
-
-Token *consume_if(void) {
-    if (token->kind != TK_IF) {
-        return NULL;
-    }
-    Token *t = token;
-    token = token->next;
-    return t;
-}
-
-Token *consume_else(void) {
-    if (token->kind != TK_ELSE) {
-        return NULL;
-    }
-    Token *t = token;
-    token = token->next;
-    return t;
-}
-
-Token *consume_while(void) {
-    if (token->kind != TK_WHILE) {
-        return NULL;
-    }
-    Token *t = token;
-    token = token->next;
-    return t;
-}
-
-Token *consume_for(void) {
-    if (token->kind != TK_FOR) {
+Token *consume_tokenKind(TokenKind kind) {
+    if (token->kind != kind) {
         return NULL;
     }
     Token *t = token;

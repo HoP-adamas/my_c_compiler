@@ -40,6 +40,7 @@ LVar *find_LVar(Token *tok) {
 /* BNF:
    program    = stmt*
    stmt       = expr ";"
+              | "{" stmt* "}"
               | "if" "(" expr ")" stmt ("else" stmt)?
               | "while" "(" expr ")" stmt
               | "for" "(" expr? ";" expr? ";" expr? ")" stmt
@@ -63,6 +64,7 @@ Node *expr(void) {
 }
 
 /* stmt    = expr ";"
+           | "{" stmt* "}"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
@@ -71,7 +73,7 @@ Node *expr(void) {
 Node *stmt(void) {
     Node *node;
 
-    Token *tok = consume_if();
+    Token *tok = consume_tokenKind(TK_IF);
     if (tok) {
         expect("(");
         node = calloc(1, sizeof(Node));
@@ -80,14 +82,14 @@ Node *stmt(void) {
         expect(")");
         node->then = stmt();
         node->els = NULL;
-        tok = consume_else();
+        tok = consume_tokenKind(TK_ELSE);
         if (tok) {
             node->els = stmt();
         }
         return node;
     }
 
-    tok = consume_while();
+    tok = consume_tokenKind(TK_WHILE);
     if (tok) {
         expect("(");
         node = calloc(1, sizeof(Node));
@@ -98,7 +100,7 @@ Node *stmt(void) {
         return node;
     }
 
-    tok = consume_for();
+    tok = consume_tokenKind(TK_FOR);
     if (tok) {
         expect("(");
         node = calloc(1, sizeof(Node));
@@ -122,7 +124,7 @@ Node *stmt(void) {
         return node;
     }
 
-    tok = consume_return();
+    tok = consume_tokenKind(TK_RETURN);
     if (tok) {
         node = calloc(1, sizeof(Node));
         node->kind = ND_RETURN;
@@ -245,7 +247,7 @@ Node *primary(void) {
         return node;
     }
     // TODO add ident
-    Token *tok = consume_ident();
+    Token *tok = consume_tokenKind(TK_IDENT);
     if (tok) {
 
         Node *node = calloc(1, sizeof(Node));

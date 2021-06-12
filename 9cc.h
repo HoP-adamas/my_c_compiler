@@ -89,12 +89,7 @@ struct Node {
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
-Token *consume_ident(void);
-Token *consume_return(void);
-Token *consume_if(void);
-Token *consume_else(void);
-Token *consume_while(void);
-Token *consume_for(void);
+Token *consume_tokenKind(TokenKind);
 void expect(char *op);
 int expect_number(void);
 bool at_eof(void);
