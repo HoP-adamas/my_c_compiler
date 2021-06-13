@@ -26,17 +26,14 @@ Map *new_map(void);
 void map_put(Map *map, char *key, void *val);
 void *map_get(Map *map, char *key);
 
+char *strndup(char *str, int chars);
+
 
 
 // kinds of tokens
 typedef enum {
     TK_RESERVED,    // symbol
     TK_IDENT,       // identifier
-    // TK_IF,          // "if"
-    // TK_ELSE,        // "else"
-    // TK_WHILE,       // "while"
-    // TK_FOR,         // "for"
-    // TK_RETURN,      // token of return
     TK_NUM,         // Integer Token
     TK_EOF,         // Token of End Of File
 
@@ -74,6 +71,7 @@ typedef enum {
     ND_WHILE,   // while
     ND_FOR,     // for
     ND_BLOCK,   // {...}
+    ND_FUNCALL, // Function call
 } NodeKind;
 
 // Local variable
@@ -106,7 +104,10 @@ struct Node {
     Node *init;
     Node *inc;
     Node *body;
-    
+
+    // Function call
+    char *funcname;
+    Node *args;
 };
 
 

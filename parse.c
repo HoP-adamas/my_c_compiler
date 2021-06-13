@@ -50,11 +50,10 @@ LVar *find_LVar(Token *tok) {
    relational = add ("<" add | "<=" add | ">" add | ">=" add)*
    add        = mul ("+" mul | "-" mul)*
    mul        = unary ("*" unary | "/" unary)*
-   unary      = ("+" | "-")? term
-   term       = num | var | "(" expr ")"
-   var        = ("a" ～ "z") ("a" ～ "z" | "A" ～ "Z" | "0" ～ "9" | "_")*
-   num        = int ("0" | int)*
-   int        = "1" ～ "9"
+   unary      = ("+" | "-")? primary
+   primary    = num
+              | ident ("(" ")")?
+              | "(" expr ")"
  */
 
 
@@ -252,7 +251,23 @@ Node *unary(void) {
     return primary();
 }
 
-// creates primary := num | ident | "(" expr ")"
+// func-args = "(" (assign ("," assign)*)? ")"
+Node *func_args(void) {
+    if (consume(")")) {
+        return NULL;
+    }
+
+    Node *head = assign();
+    Node *cur = head;
+    while (consume(",")) {
+        cur->next = assign();
+        cur = cur->next;
+    }
+    expect(")");
+    return head;
+}
+
+// primary = "(" expr ")" | ident func-args? | num
 Node *primary(void) {
     if (consume("(")) {
         Node *node = expr();
@@ -262,7 +277,14 @@ Node *primary(void) {
     // TODO add ident
     Token *tok = consume_ident();
     if (tok) {
-
+        
+        if (consume("(")) {
+            Node *node = calloc(1, sizeof(Node));
+            node->kind = ND_FUNCALL;
+            node->funcname = strndup(tok->str, tok->len);
+            node->args = func_args();
+            return node;
+        }
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;
 
