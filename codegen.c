@@ -17,8 +17,6 @@ void gen(Node *node) {
     
     if (!node) return;
 
-    int cnt = label_count;
-    label_count++;
 
     switch (node->kind) {
     case ND_NUM:
@@ -39,7 +37,8 @@ void gen(Node *node) {
         printf("  mov [rax], rdi\n");
         printf("  push rdi\n");
         return;
-    case ND_IF:
+    case ND_IF: {
+        int cnt = label_count++;
         gen(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
@@ -52,7 +51,9 @@ void gen(Node *node) {
         }
         printf(".Lend%d:\n", cnt);
         return;
-    case ND_WHILE:
+    }
+    case ND_WHILE: {
+        int cnt = label_count++;
         printf(".Lbegin%d:\n", cnt);
         gen(node->cond);
         printf("  pop rax\n");
@@ -62,7 +63,9 @@ void gen(Node *node) {
         printf("  jmp .Lbegin%d\n", cnt);
         printf(".Lend%d:\n", cnt);
         return;
-    case ND_FOR:
+    }
+    case ND_FOR: {
+        int cnt = label_count++;
         gen(node->init);
         printf(".Lbegin%d:\n", cnt);
         gen(node->cond);
@@ -74,6 +77,7 @@ void gen(Node *node) {
         printf("  jmp .Lbegin%d\n", cnt);
         printf(".Lend%d:\n", cnt);
         return;
+    }
     case ND_BLOCK:
         for (Node *n = node->body; n; n = n->next) {
             gen(n);
@@ -88,6 +92,19 @@ void gen(Node *node) {
         for (int i = nargs - 1; i >= 0; i--) {
             printf("  pop %s\n", argreg[i]);
         }
+
+        // We need to align RSP to a 16 byte boundary before
+        // calling a function because it is an ABI requirement.
+        // RAX is set to 0 for variadic function.
+        int cnt = label_count++;
+        printf("  mov rax, rsp\n");
+        printf("  and rax, 15\n");
+        printf("  jz .Lcall%d\n", cnt);
+        printf("  sub rsp, 8\n");
+        printf("  mov rax, 0\n");
+        printf("  add rsp, 8\n");
+
+        printf(".Lcall%d:\n", cnt);
         printf("  call %s\n", node->funcname);
         printf("  push rax\n");
         return;
