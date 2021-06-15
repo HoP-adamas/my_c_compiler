@@ -102,10 +102,9 @@ void gen(Node *node) {
         printf("  jz .Lcall%d\n", cnt);
         printf("  sub rsp, 8\n");
         printf("  mov rax, 0\n");
-        printf("  add rsp, 8\n");
-
         printf(".Lcall%d:\n", cnt);
         printf("  call %s\n", node->funcname);
+        printf("  add rsp, 8\n");
         printf("  push rax\n");
         return;
     }
