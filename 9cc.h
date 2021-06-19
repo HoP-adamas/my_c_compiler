@@ -64,7 +64,7 @@ typedef enum {
     ND_LE,      // <=
     ND_ASSIGN,  // =
     ND_NUM,     // Integer
-    ND_LVAR,    // local one letter variable
+    ND_Var,    // local one letter variable
     ND_RETURN,  // return
     ND_IF,      // if
     ND_ELSE,    // else
@@ -75,10 +75,10 @@ typedef enum {
 } NodeKind;
 
 // Local variable
-typedef struct LVar LVar;
+typedef struct Var Var;
 
-struct LVar {
-    LVar *next;     // next local variable or NULL
+struct Var {
+    Var *next;     // next local variable or NULL
     char *name;     // the name of local variable
     int len;        // the length of the name
     int offset;     // the offset from RBP
@@ -93,8 +93,8 @@ struct Node {
     Node *lhs;      // left-hand side of the node
     Node *rhs;      // right-hand side of the node
     int val;        // use only if kind is ND_NUM
-    int offset;     // use only if kind is ND_LVAR
-    LVar *var;
+    int offset;     // use only if kind is ND_Var
+    Var *var;
 
     // "if" ( cond ) then "else" els
     // "for" ( init; cond; inc ) body
@@ -116,7 +116,7 @@ typedef struct  Function Function;
 struct Function {
     Function *next;
     char *name;
-    LVar *locals;
+    Var *locals;
     Node *node;
     int stack_size;
 };
@@ -136,10 +136,10 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 Token *tokenize(char *p);
 
 // parse.c
-LVar *find_LVar(Token *tok);
+Var *find_Var(Token *tok);
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
-Node *new_node_lvar(LVar *var);
+Node *new_node_Var(Var *var);
 Node *stmt(void);
 Function *program(void);
 Node *expr(void);
@@ -163,4 +163,4 @@ extern char *user_input;
 
 extern Function *prog;
 
-extern LVar *locals;
+extern Var *locals;

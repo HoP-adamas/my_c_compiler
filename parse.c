@@ -1,6 +1,6 @@
 #include "9cc.h"
 
-LVar *locals;
+Var *locals;
 Node *code[100];
 
 // creates a new node
@@ -20,16 +20,16 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *new_node_lvar(LVar *var) {
-    Node *node = new_node(ND_LVAR, NULL, NULL);
+Node *new_node_Var(Var *var) {
+    Node *node = new_node(ND_Var, NULL, NULL);
     node->var = var;
     return node;
 }
 
 // search variable by its name. if it is not be found, return NULL.
-LVar *find_LVar(Token *tok) {
+Var *find_Var(Token *tok) {
 
-    for (LVar *var = locals; var; var = var->next) {
+    for (Var *var = locals; var; var = var->next) {
         if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {
             return var;
         }
@@ -316,25 +316,25 @@ Node *primary(void) {
             return node;
         }
         Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_LVAR;
+        node->kind = ND_Var;
 
-        LVar *lvar = find_LVar(tok);
-        if (lvar) {
-            node->offset = lvar->offset;
+        Var *Var = find_Var(tok);
+        if (Var) {
+            node->offset = Var->offset;
         }
         else {
-            lvar = calloc(1,sizeof(LVar));
-            lvar->next = locals;
-            lvar->name = tok->str;
-            lvar->len = tok->len;
+            Var = calloc(1,sizeof(Var));
+            Var->next = locals;
+            Var->name = tok->str;
+            Var->len = tok->len;
             if (locals == NULL) {
-                lvar->offset = 8;
+                Var->offset = 8;
             }
             else {
-                lvar->offset = locals->offset + 8;
+                Var->offset = locals->offset + 8;
             }
-            node->offset = lvar->offset;
-            locals = lvar;
+            node->offset = Var->offset;
+            locals = Var;
         }
         return node;
     }

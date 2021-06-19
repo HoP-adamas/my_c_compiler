@@ -6,7 +6,7 @@ char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char *funcname;
 
 void gen_lval(Node *node) {
-    if (node->kind != ND_LVAR) {
+    if (node->kind != ND_Var) {
         error("Substitution of the left value does not a variable");
     }
 
@@ -24,7 +24,7 @@ void gen(Node *node) {
     case ND_NUM:
         printf("  push %d\n", node->val);
         return;
-    case ND_LVAR:
+    case ND_Var:
         gen_lval(node);
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n");
