@@ -78,10 +78,16 @@ typedef enum {
 typedef struct Var Var;
 
 struct Var {
-    Var *next;     // next local variable or NULL
     char *name;     // the name of local variable
     int len;        // the length of the name
     int offset;     // the offset from RBP
+};
+
+typedef struct VarList VarList;
+
+struct VarList {
+    VarList *next;
+    Var *var;
 };
 
 typedef struct Node Node;
@@ -116,7 +122,8 @@ typedef struct  Function Function;
 struct Function {
     Function *next;
     char *name;
-    Var *locals;
+    VarList *params;
+    VarList *locals;
     Node *node;
     int stack_size;
 };
@@ -142,6 +149,7 @@ Node *new_node_num(int val);
 Node *new_node_Var(Var *var);
 Node *stmt(void);
 Function *program(void);
+Function *function(void);
 Node *expr(void);
 Node *assign(void);
 Node *equality(void);
@@ -163,4 +171,4 @@ extern char *user_input;
 
 extern Function *prog;
 
-extern Var *locals;
+extern VarList *locals;

@@ -10,9 +10,9 @@ void gen_lval(Node *node) {
         error("Substitution of the left value does not a variable");
     }
 
-    printf("  mov rax, rbp\n");
-    printf("  sub rax, %d\n", node->offset);
+    printf("  lea rax, [rbp-%d]\n", node->var->offset);
     printf("  push rax\n");
+    return;
 }
 
 void gen(Node *node) {
@@ -68,14 +68,20 @@ void gen(Node *node) {
     }
     case ND_FOR: {
         int cnt = label_count++;
-        gen(node->init);
+        if (node->init) {
+            gen(node->init);
+        }
         printf(".Lbegin%d:\n", cnt);
-        gen(node->cond);
-        printf("  pop rax\n");
-        printf("  cmp rax, 0\n");
-        printf("  je .Lend%d\n", cnt);
+        if (node->cond) {
+            gen(node->cond);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je .Lend%d\n", cnt);
+        }
         gen(node->body);
-        gen(node->inc);
+        if (node->inc) {
+            gen(node->inc);
+        }
         printf("  jmp .Lbegin%d\n", cnt);
         printf(".Lend%d:\n", cnt);
         return;
@@ -101,12 +107,16 @@ void gen(Node *node) {
         int cnt = label_count++;
         printf("  mov rax, rsp\n");
         printf("  and rax, 15\n");
-        printf("  jz .Lcall%d\n", cnt);
+        printf("  jnz .Lcall%d\n", cnt);
+        printf("  mov rax, 0\n");
+        printf("  call %s\n", node->funcname);
+        printf("  jmp .Lend%d\n", cnt);
+        printf(".Lcall%d:\n", cnt);
         printf("  sub rsp, 8\n");
         printf("  mov rax, 0\n");
-        printf(".Lcall%d:\n", cnt);
         printf("  call %s\n", node->funcname);
         printf("  add rsp, 8\n");
+        printf(".Lend%d:\n",cnt);
         printf("  push rax\n");
         return;
     }
@@ -175,6 +185,12 @@ void codegen(Function *prog) {
         printf("  push rbp\n");
         printf("  mov rbp, rsp\n");
         printf("  sub rsp, %d\n", fn->stack_size);
+
+        int i = 0;
+        for (VarList *vl = fn->params; vl; vl = vl->next) {
+            Var *var = vl->var;
+            printf("  mov [rbp-%d], %s\n", var->offset, argreg[i++]);
+        }
 
         //emit code
         for (Node *node = fn->node; node; node = node->next) {

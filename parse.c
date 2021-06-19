@@ -1,7 +1,6 @@
 #include "9cc.h"
 
-Var *locals;
-Node *code[100];
+VarList *locals;
 
 // creates a new node
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
@@ -29,12 +28,44 @@ Node *new_node_Var(Var *var) {
 // search variable by its name. if it is not be found, return NULL.
 Var *find_Var(Token *tok) {
 
-    for (Var *var = locals; var; var = var->next) {
-        if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {
+    for (VarList *vl = locals; vl; vl = vl->next) {
+        Var *var = vl->var;
+        if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len)) {
             return var;
         }
     }
     return NULL;
+}
+
+Var *push_var(char *name) {
+    Var *var = calloc(1, sizeof(Var));
+    var->name = name;
+    VarList *vl = calloc(1, sizeof(VarList));
+    vl->next = locals;
+    vl->var = var;
+    locals = vl;
+    return var;
+
+}
+
+VarList *read_func_params(void) {
+    if (consume(")")) {
+        return NULL;
+    }
+
+    VarList *head = calloc(1, sizeof(VarList));
+    head->var = push_var(expect_ident());
+    VarList *cur = head;
+
+    while (!consume(")")) {
+        expect(",");
+        cur->next = calloc(1, sizeof(VarList));
+        cur->next->var = push_var(expect_ident());
+        cur = cur->next;
+    }
+    return head;
+    
+    
 }
 
 /* BNF:
@@ -56,7 +87,6 @@ Var *find_Var(Token *tok) {
               | "(" expr ")"
  */
 
-Function *function(void);
 
 // creates expr := assign
 Node *expr(void) {
@@ -164,12 +194,14 @@ Function *program(void) {
     }
     return head.next;
 }
-// function = ident "(" ")" "{" stmt* "}"
+// function = ident "(" params? ")" "{" stmt* "}"
+// params = ident ("," ident)*
 Function *function(void) {
+    Function *fn = calloc(1, sizeof(Function));
     locals = NULL;
-    char *name = expect_ident();
+    fn->name = expect_ident();
     expect("(");
-    expect(")");
+    fn->params = read_func_params();
     expect("{");
 
     Node head;
@@ -181,8 +213,6 @@ Function *function(void) {
         cur = cur->next;
     }
 
-    Function *fn = calloc(1, sizeof(Function));
-    fn->name = name;
     fn->node = head.next;
     fn->locals = locals;
 
@@ -304,7 +334,7 @@ Node *primary(void) {
         expect(")");
         return node;
     }
-    // TODO add ident
+    
     Token *tok = consume_ident();
     if (tok) {
         
@@ -315,35 +345,16 @@ Node *primary(void) {
             node->args = func_args();
             return node;
         }
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_Var;
 
-        Var *Var = find_Var(tok);
-        if (Var) {
-            node->offset = Var->offset;
+        Var *var = find_Var(tok);
+        if (!var) {
+            var = push_var(strndup(tok->str, tok->len));
         }
-        else {
-            Var = calloc(1,sizeof(Var));
-            Var->next = locals;
-            Var->name = tok->str;
-            Var->len = tok->len;
-            if (locals == NULL) {
-                Var->offset = 8;
-            }
-            else {
-                Var->offset = locals->offset + 8;
-            }
-            node->offset = Var->offset;
-            locals = Var;
-        }
-        return node;
+        return new_node_Var(var);
     }
+    return new_node_num(expect_number());
 
-    if (token->kind == TK_NUM) {
-        Node *node = new_node_num(token->val);
-        token = token->next;
-        return node;
-    }
+    
 
     error("expected an expression\n");
 }
