@@ -3,6 +3,8 @@
 static int label_count = 0;
 char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
+char *funcname;
+
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR) {
         error("Substitution of the left value does not a variable");
@@ -111,9 +113,7 @@ void gen(Node *node) {
     case ND_RETURN:
         gen(node->lhs);
         printf("  pop rax\n");
-        printf("  mov rsp, rbp\n");
-        printf("  pop rbp\n");
-        printf("  ret\n");
+        printf("  jmp .Lreturn.%s\n", funcname);
         return;
     }
 
@@ -161,4 +161,31 @@ void gen(Node *node) {
 
     }
     printf("  push rax\n");
+}
+
+void codegen(Function *prog) {
+    printf(".intel_syntax noprefix\n");
+
+    for (Function *fn = prog; fn; fn = fn->next) {
+        printf(".global %s\n", fn->name);
+        printf("%s:\n", fn->name);
+        funcname = fn->name;
+
+        // prologue
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+        printf("  sub rsp, %d\n", fn->stack_size);
+
+        //emit code
+        for (Node *node = fn->node; node; node = node->next) {
+            gen(node);
+        }
+
+        // epilogue
+        printf(".Lreturn.%s:\n", funcname);
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret\n");
+
+    }
 }

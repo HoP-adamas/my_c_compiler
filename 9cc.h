@@ -83,6 +83,7 @@ struct LVar {
     int len;        // the length of the name
     int offset;     // the offset from RBP
 };
+
 typedef struct Node Node;
 
 // type of node of AST
@@ -110,6 +111,17 @@ struct Node {
     Node *args;
 };
 
+typedef struct  Function Function;
+
+struct Function {
+    Function *next;
+    char *name;
+    LVar *locals;
+    Node *node;
+    int stack_size;
+};
+
+
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
@@ -118,6 +130,7 @@ Token *consume(char *s);
 Token *consume_ident(void);
 void expect(char *op);
 int expect_number(void);
+char *expect_ident(void);
 bool at_eof(void);
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 Token *tokenize(char *p);
@@ -128,7 +141,7 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *new_node_lvar(LVar *var);
 Node *stmt(void);
-void program(void);
+Function *program(void);
 Node *expr(void);
 Node *assign(void);
 Node *equality(void);
@@ -141,12 +154,13 @@ Node *primary(void);
 
 // codegen.c
 void gen(Node *node);
+void codegen(Function *prog);
 
 // the token we focus on
 extern Token *token;
 
 extern char *user_input;
 
-extern Node *code[100];
+extern Function *prog;
 
 extern LVar *locals;

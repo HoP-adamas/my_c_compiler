@@ -56,6 +56,7 @@ LVar *find_LVar(Token *tok) {
               | "(" expr ")"
  */
 
+Function *function(void);
 
 // creates expr := assign
 Node *expr(void) {
@@ -152,12 +153,41 @@ Node *stmt(void) {
     return node;
 }
 
-void program(void) {
-    int i = 0;
+Function *program(void) {
+    Function head;
+    head.next = NULL;
+    Function *cur = &head;
+    
     while (!at_eof()) {
-        code[i++] = stmt();
+        cur->next = function();
+        cur = cur->next;
     }
-    code[i] = NULL;
+    return head.next;
+}
+// function = ident "(" ")" "{" stmt* "}"
+Function *function(void) {
+    locals = NULL;
+    char *name = expect_ident();
+    expect("(");
+    expect(")");
+    expect("{");
+
+    Node head;
+    head.next = NULL;
+    Node *cur = &head;
+
+    while (!consume("}")) {
+        cur->next = stmt();
+        cur = cur->next;
+    }
+
+    Function *fn = calloc(1, sizeof(Function));
+    fn->name = name;
+    fn->node = head.next;
+    fn->locals = locals;
+
+    return fn;
+
 }
 
 // creates assign := equality ("=" assign)?

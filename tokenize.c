@@ -51,6 +51,15 @@ int expect_number(void) {
     return val;
 }
 
+char *expect_ident(void) {
+    if (token->kind != TK_IDENT) {
+        error_at(token->str, "expected an identifier");
+    }
+    char *s = strndup(token->str, token->len);
+    token = token->next;
+    return s;
+}
+
 bool at_eof(void) {
     return token->kind == TK_EOF;
 }
