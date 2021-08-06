@@ -5,14 +5,23 @@ char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 char *funcname;
 
-void gen_lval(Node *node) {
-    if (node->kind != ND_Var) {
-        error("Substitution of the left value does not a variable");
+void gen_addr(Node *node) {
+    switch (node->kind)
+    {
+    case ND_Var: {
+        printf("  lea rax, [rbp-%d]\n", node->var->offset);
+        printf("  push rax\n");
+        return;
     }
+    case ND_DEREF: {
+        gen(node->lhs);
+        return;
+    }
+    }
+    // if (node->kind != ND_Var) {
+    //     error("Substitution of the left value does not a variable. actual: %d", node->kind);
+    // }
 
-    printf("  lea rax, [rbp-%d]\n", node->var->offset);
-    printf("  push rax\n");
-    return;
 }
 
 void gen(Node *node) {
@@ -25,13 +34,13 @@ void gen(Node *node) {
         printf("  push %d\n", node->val);
         return;
     case ND_Var:
-        gen_lval(node);
+        gen_addr(node);
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n");
         printf("  push rax\n");
         return;
     case ND_ASSIGN:
-        gen_lval(node->lhs);
+        gen_addr(node->lhs);
         gen(node->rhs);
 
         printf("  pop rdi\n");
@@ -118,6 +127,17 @@ void gen(Node *node) {
         printf("  add rsp, 8\n");
         printf(".Lend%d:\n",cnt);
         printf("  push rax\n");
+        return;
+    }
+    case ND_DEREF: {
+        gen(node->lhs);
+        printf("  pop rax\n");
+        printf("  mov rax, [rax]\n");
+        printf("  push rax\n");
+        return;
+    }
+    case ND_ADDR: {
+        gen_addr(node->lhs);
         return;
     }
     case ND_RETURN:
