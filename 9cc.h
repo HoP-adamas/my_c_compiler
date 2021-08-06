@@ -6,6 +6,17 @@
 #include <string.h>
 
 
+typedef enum {
+    TY_INT,
+} TypeKind;
+
+typedef struct
+{
+    TypeKind kind;
+} Type;
+
+Type *int_type(void);
+
 typedef struct 
 {
     void **data;
@@ -72,8 +83,10 @@ typedef enum {
     ND_FOR,     // for
     ND_BLOCK,   // {...}
     ND_FUNCALL, // Function call
+    ND_EXPR_STMT, // Expression statement
     ND_ADDR,    // unary &
     ND_DEREF,   // unary *
+    ND_NULL,    // Empty statement
 } NodeKind;
 
 // Local variable
@@ -83,6 +96,7 @@ struct Var {
     char *name;     // the name of local variable
     int len;        // the length of the name
     int offset;     // the offset from RBP
+    Type *ty;
 };
 
 typedef struct VarList VarList;
@@ -152,6 +166,7 @@ Node *new_node_Var(Var *var);
 Node *stmt(void);
 Function *program(void);
 Function *function(void);
+Node *declaration(void);
 Node *expr(void);
 Node *assign(void);
 Node *equality(void);
