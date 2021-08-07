@@ -77,6 +77,7 @@ typedef enum {
     ND_ADDR,    // unary &
     ND_DEREF,   // unary *
     ND_NULL,    // Empty statement
+    ND_SIZEOF,  // sizeof
 } NodeKind;
 
 // Local variable

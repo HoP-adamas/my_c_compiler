@@ -338,7 +338,8 @@ Node *mul(void) {
     }
 }
 
-// creates unary := "+"? unary
+// creates unary := "sizeof" unary
+//                | "+"? unary
 //                | "-"? unary
 //                | "*"? unary
 //                | "&"? unary
@@ -376,6 +377,9 @@ Node *func_args(void) {
 
 // primary = "(" expr ")" | ident func-args? | num
 Node *primary(void) {
+    if (consume("sizeof")){
+        return new_node(ND_SIZEOF, unary(), NULL);
+    }
     if (consume("(")) {
         Node *node = expr();
         expect(")");
