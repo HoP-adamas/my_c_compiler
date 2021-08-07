@@ -12,6 +12,15 @@ Type *pointer_to(Type *base) {
     ty->base = base;
     return ty;
 }
+int size_of(Type *ty) {
+    switch (ty->kind) {
+        case TY_INT:
+            return 4;
+        case TY_PTR:
+            return 8;
+    }
+    return size_of(ty->base);
+}
 
 void visit(Node *node) {
     if (!node) {
@@ -85,7 +94,7 @@ void visit(Node *node) {
         case ND_SIZEOF:
             node->kind = ND_NUM;
             node->ty = int_type();
-            node->val = sizeof(node->lhs->ty);
+            node->val = size_of(node->lhs->ty);
             node->lhs = NULL;
             return;
 
