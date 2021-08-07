@@ -20,7 +20,7 @@ Node *new_node_num(int val) {
 }
 
 Node *new_node_Var(Var *var) {
-    Node *node = new_node(ND_Var, NULL, NULL);
+    Node *node = new_node(ND_VAR, NULL, NULL);
     node->var = var;
     return node;
 }
@@ -52,6 +52,10 @@ Var *push_var(Type *ty, char *name) {
 Type *basetype(void) {
     expect("int");
     Type *ty = int_type();
+
+    while (consume("*")) {
+        ty = pointer_to(ty);
+    }
 
     return ty;
 

@@ -11,6 +11,7 @@ int main(int argc, char **argv) {
     user_input = argv[1];
     token = tokenize(user_input);
     Function *prog = program();
+    add_type(prog);
 
     for (Function *fn = prog; fn; fn = fn->next) {
         int offset = 0;

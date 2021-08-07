@@ -8,7 +8,7 @@ char *funcname;
 void gen_addr(Node *node) {
     switch (node->kind)
     {
-    case ND_Var: {
+    case ND_VAR: {
         printf("  lea rax, [rbp-%d]\n", node->var->offset);
         printf("  push rax\n");
         return;
@@ -18,7 +18,7 @@ void gen_addr(Node *node) {
         return;
     }
     }
-    // if (node->kind != ND_Var) {
+    // if (node->kind != ND_VAR) {
     //     error("Substitution of the left value does not a variable. actual: %d", node->kind);
     // }
 
@@ -35,7 +35,11 @@ void gen(Node *node) {
     case ND_NUM:
         printf("  push %d\n", node->val);
         return;
-    case ND_Var:
+    case ND_EXPR_STMT:
+        gen(node->lhs);
+        printf("  add rsp, 8\n");
+        return;
+    case ND_VAR:
         gen_addr(node);
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n");
@@ -157,9 +161,16 @@ void gen(Node *node) {
 
     switch (node->kind) {
         case ND_ADD:
+            if (node->ty->kind == TY_PTR) {
+                
+                printf("  imul rdi, 8\n");
+            }
             printf("  add rax, rdi\n");
             break;
         case ND_SUB:
+        if (node->ty->kind == TY_PTR) {
+                printf("  imul rdi, 8\n");
+            }
             printf("  sub rax, rdi\n");
             break;
         case ND_MUL:

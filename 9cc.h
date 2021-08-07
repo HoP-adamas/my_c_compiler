@@ -6,17 +6,7 @@
 #include <string.h>
 
 
-typedef enum {
-    TY_INT,
-} TypeKind;
-
-typedef struct
-{
-    TypeKind kind;
-} Type;
-
-Type *int_type(void);
-
+typedef struct Type Type;
 typedef struct 
 {
     void **data;
@@ -75,7 +65,7 @@ typedef enum {
     ND_LE,      // <=
     ND_ASSIGN,  // =
     ND_NUM,     // Integer
-    ND_Var,    // local one letter variable
+    ND_VAR,    // local one letter variable
     ND_RETURN,  // return
     ND_IF,      // if
     ND_ELSE,    // else
@@ -115,7 +105,7 @@ struct Node {
     Node *lhs;      // left-hand side of the node
     Node *rhs;      // right-hand side of the node
     int val;        // use only if kind is ND_NUM
-    int offset;     // use only if kind is ND_Var
+    int offset;     // use only if kind is ND_VAR
     Var *var;
 
     // "if" ( cond ) then "else" els
@@ -131,6 +121,8 @@ struct Node {
     // Function call
     char *funcname;
     Node *args;
+
+    Type *ty;
 };
 
 typedef struct  Function Function;
@@ -175,6 +167,21 @@ Node *add(void);
 Node *mul(void);
 Node *unary(void);
 Node *primary(void);
+
+typedef enum {
+    TY_INT,
+    TY_PTR,
+} TypeKind;
+
+struct Type
+{
+    TypeKind kind;
+    Type *base;
+};
+
+Type *int_type(void);
+Type *pointer_to(Type *base);
+void add_type(Function *prog);
 
 
 // codegen.c
