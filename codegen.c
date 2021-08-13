@@ -8,20 +8,33 @@ char *funcname;
 void gen_addr(Node *node) {
     switch (node->kind)
     {
-    case ND_VAR: {
-        printf("  lea rax, [rbp-%d]\n", node->var->offset);
-        printf("  push rax\n");
-        return;
+        case ND_VAR: {
+            printf("  lea rax, [rbp-%d]\n", node->var->offset);
+            printf("  push rax\n");
+            return;
+        }
+        case ND_DEREF: {
+            gen(node->lhs);
+            return;
+        }
     }
-    case ND_DEREF: {
-        gen(node->lhs);
-        return;
-    }
-    }
+    error("%s is not ans local value\n", node->var->name);
     // if (node->kind != ND_VAR) {
     //     error("Substitution of the left value does not a variable. actual: %d", node->kind);
     // }
 
+}
+
+void gen_lval(Node *node) {
+    if (node->ty->kind == TY_ARRAY) {
+        error("%s is not an local value", node->var->name);
+    }
+    gen_addr(node);
+}
+void load(void) {
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
 }
 
 void gen(Node *node) {
@@ -41,12 +54,12 @@ void gen(Node *node) {
         return;
     case ND_VAR:
         gen_addr(node);
-        printf("  pop rax\n");
-        printf("  mov rax, [rax]\n");
-        printf("  push rax\n");
+        if (node->ty->kind != TY_ARRAY) {
+            load();
+        }
         return;
     case ND_ASSIGN:
-        gen_addr(node->lhs);
+        gen_lval(node->lhs);
         gen(node->rhs);
 
         printf("  pop rdi\n");
@@ -137,9 +150,9 @@ void gen(Node *node) {
     }
     case ND_DEREF: {
         gen(node->lhs);
-        printf("  pop rax\n");
-        printf("  mov rax, [rax]\n");
-        printf("  push rax\n");
+       if (node->ty->kind != TY_ARRAY) {
+           load();
+       }
         return;
     }
     case ND_ADDR: {
@@ -161,15 +174,15 @@ void gen(Node *node) {
 
     switch (node->kind) {
         case ND_ADD:
-            if (node->ty->kind == TY_PTR) {
+            if (node->ty->base) {
                 
-                printf("  imul rdi, 8\n");
+                printf("  imul rdi, %d\n", size_of(node->ty->base));
             }
             printf("  add rax, rdi\n");
             break;
         case ND_SUB:
-        if (node->ty->kind == TY_PTR) {
-                printf("  imul rdi, 8\n");
+        if (node->ty->base) {
+                printf("  imul rdi, %d\n", size_of(node->ty->base));
             }
             printf("  sub rax, rdi\n");
             break;

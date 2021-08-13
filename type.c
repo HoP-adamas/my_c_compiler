@@ -12,14 +12,25 @@ Type *pointer_to(Type *base) {
     ty->base = base;
     return ty;
 }
+
+Type *array_of(Type *base, int size) {
+    Type *ty = calloc(1, sizeof(Type));
+    ty->kind = TY_ARRAY;
+    ty->base = base;
+    ty->array_size = size;
+    return ty;
+
+}
 int size_of(Type *ty) {
     switch (ty->kind) {
         case TY_INT:
-            return 4;
+            return 8;
         case TY_PTR:
             return 8;
+
     }
-    return size_of(ty->base);
+    assert(ty->kind == TY_ARRAY);
+    return size_of(ty->base) * ty->array_size;
 }
 
 void visit(Node *node) {
@@ -57,23 +68,23 @@ void visit(Node *node) {
             node->ty = node->var->ty;
             return;
         case ND_ADD:
-            if (node->rhs->ty->kind == TY_PTR) {
+            if (node->rhs->ty->base) {
                 Node *tmp = node->lhs;
                 node->lhs = node->rhs;
                 node->rhs = tmp;
             }
-            if (node->rhs->ty->kind == TY_PTR) {
+            if (node->rhs->ty->base) {
                 error("invalid pointer arithmetic operands");
             }
             node->ty = node->lhs->ty;
             return;
         case ND_SUB:
-            if (node->rhs->ty->kind == TY_PTR) {
+            if (node->rhs->ty->base) {
                 Node *tmp = node->lhs;
                 node->lhs = node->rhs;
                 node->rhs = tmp;
             }
-            if (node->rhs->ty->kind == TY_PTR) {
+            if (node->rhs->ty->base) {
                 error("invalid pointer arithmetic operands");
             }
             node->ty = node->lhs->ty;
@@ -82,14 +93,17 @@ void visit(Node *node) {
             node->ty = node->lhs->ty;
             return;
         case ND_ADDR:
-            node->ty = pointer_to(node->lhs->ty);
+            if (node->lhs->ty->kind == TY_ARRAY) {
+                node->ty = pointer_to(node->lhs->ty->base);
+            } else {
+                node->ty = pointer_to(node->lhs->ty);
+            }
             return;
         case ND_DEREF:
-            if (node->lhs->ty->kind != TY_PTR) {
-                node->ty = node->lhs->ty->base;
-            } else {
-                node->ty = int_type();
+            if (!node->lhs->ty->base) {
+                error("invalid pointer dereference %s", node->lhs->var->name);
             }
+            node->ty = node->lhs->ty->base;
             return;
         case ND_SIZEOF:
             node->kind = ND_NUM;

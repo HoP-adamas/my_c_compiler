@@ -61,10 +61,23 @@ Type *basetype(void) {
 
 }
 
+Type *read_type_suffix(Type *base) {
+    if (!consume("[")) {
+        return base;
+    }
+    int sz = expect_number();
+    expect("]");
+    base = read_type_suffix(base);
+    return array_of(base, sz);
+}
+
 VarList *read_func_param(void) {
-    VarList *vl = calloc(1, sizeof(VarList));
     Type *ty = basetype();
-    vl->var = push_var(ty, expect_ident());
+    char *name = expect_ident();
+    ty = read_type_suffix(ty);
+
+    VarList *vl = calloc(1, sizeof(VarList));
+    vl->var = push_var(ty, name);
     return vl;
 }
 VarList *read_func_params(void) {
@@ -242,10 +255,12 @@ Function *function(void) {
 
 }
 
-// declaration = basetype ident ("=" expr)?;
+// declaration := basetype ident ("[" num "]")* ("=" expr) ";"
 Node *declaration(void) {
     Type *ty = basetype();
-    Var *var = push_var(ty, expect_ident());
+    char *name = expect_ident();
+    ty = read_type_suffix(ty);
+    Var *var = push_var(ty, name);
 
     if (consume(";")) {
         return new_node(ND_NULL, NULL, NULL);
