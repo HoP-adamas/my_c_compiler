@@ -358,6 +358,7 @@ Node *mul(void) {
 //                | "-"? unary
 //                | "*"? unary
 //                | "&"? unary
+//                | postfix
 Node *unary(void) {
     if (consume("+")) {
         return unary();
@@ -371,7 +372,19 @@ Node *unary(void) {
     if (consume("&")) {
         return new_node(ND_ADDR, unary(), NULL);
     }
-    return primary();
+    return postfix();
+}
+
+// postfix = primary ("[" expr "]")*
+Node *postfix(void) {
+    Node *node = primary();
+    
+    while (consume("[")) {
+        Node *exp = new_node(ND_ADD, node, expr());
+        expect("]");
+        node = new_node(ND_DEREF, exp, NULL);
+    }
+    return node;
 }
 
 // func-args = "(" (assign ("," assign)*)? ")"
