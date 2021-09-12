@@ -86,9 +86,10 @@ typedef struct Var Var;
 
 struct Var {
     char *name;     // the name of local variable
-    int len;        // the length of the name
     int offset;     // the offset from RBP
     Type *ty;
+
+    bool is_local;  // local or global
 };
 
 typedef struct VarList VarList;
@@ -138,6 +139,13 @@ struct Function {
     int stack_size;
 };
 
+typedef struct
+{
+    VarList *globals;
+    Function *fns;
+} Program;
+
+
 
 
 void error(char *fmt, ...);
@@ -158,7 +166,7 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *new_node_Var(Var *var);
 Node *stmt(void);
-Function *program(void);
+Program *program(void);
 Function *function(void);
 Node *declaration(void);
 Node *expr(void);
@@ -188,12 +196,12 @@ Type *int_type(void);
 Type *pointer_to(Type *base);
 Type *array_of(Type *base, int size);
 int size_of(Type *ty);
-void add_type(Function *prog);
+void add_type(Program *prog);
 
 
 // codegen.c
 void gen(Node *node);
-void codegen(Function *prog);
+void codegen(Program *prog);
 
 // the token we focus on
 extern Token *token;

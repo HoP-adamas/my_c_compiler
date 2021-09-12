@@ -1,6 +1,7 @@
 #include "9cc.h"
 
 VarList *locals;
+VarList *globals;
 
 // creates a new node
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
@@ -28,7 +29,16 @@ Node *new_node_Var(Var *var) {
 // search variable by its name. if it is not be found, return NULL.
 Var *find_Var(Token *tok) {
 
+    // search from local variables
     for (VarList *vl = locals; vl; vl = vl->next) {
+        Var *var = vl->var;
+        if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len)) {
+            return var;
+        }
+    }
+
+    // search from global variables
+    for (VarList *vl = globals; vl; vl = vl->next) {
         Var *var = vl->var;
         if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len)) {
             return var;
@@ -37,14 +47,21 @@ Var *find_Var(Token *tok) {
     return NULL;
 }
 
-Var *push_var(Type *ty, char *name) {
+Var *push_var(Type *ty, char *name, bool is_local) {
     Var *var = calloc(1, sizeof(Var));
     var->ty = ty;
     var->name = name;
+    var->is_local = is_local;
     VarList *vl = calloc(1, sizeof(VarList));
-    vl->next = locals;
     vl->var = var;
-    locals = vl;
+    if (is_local) {
+        vl->next = locals;
+        locals = vl;
+    }
+    else {
+        vl->next = globals;
+        globals = vl;
+    }
     return var;
 
 }
@@ -77,7 +94,7 @@ VarList *read_func_param(void) {
     ty = read_type_suffix(ty);
 
     VarList *vl = calloc(1, sizeof(VarList));
-    vl->var = push_var(ty, name);
+    vl->var = push_var(ty, name, true);
     return vl;
 }
 VarList *read_func_params(void) {
@@ -216,16 +233,43 @@ Node *stmt(void) {
     return node;
 }
 
-Function *program(void) {
+bool is_function(void) {
+    Token *tok = token;
+    basetype();
+
+    bool is_func = consume_ident() && consume("(");
+    token = tok;
+    return is_func;
+}
+
+void global_var(void) {
+    Type *ty = basetype();
+    char *name = expect_ident();
+    ty = read_type_suffix(ty);
+    expect(";");
+    push_var(ty, name, false);
+}
+
+Program *program(void) {
     Function head;
     head.next = NULL;
     Function *cur = &head;
+    globals = NULL;
     
     while (!at_eof()) {
+        if (is_function()) {
         cur->next = function();
         cur = cur->next;
+        }
+        else {
+            global_var();
+        }
     }
-    return head.next;
+
+    Program *prog = calloc(1, sizeof(Program));
+    prog->globals = globals;
+    prog->fns = head.next;
+    return prog;
 }
 // function = basetype ident "(" params? ")" "{" stmt* "}"
 // params = param ("," param)*
@@ -260,7 +304,7 @@ Node *declaration(void) {
     Type *ty = basetype();
     char *name = expect_ident();
     ty = read_type_suffix(ty);
-    Var *var = push_var(ty, name);
+    Var *var = push_var(ty, name, true);
 
     if (consume(";")) {
         return new_node(ND_NULL, NULL, NULL);
