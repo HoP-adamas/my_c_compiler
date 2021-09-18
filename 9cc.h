@@ -181,6 +181,7 @@ Node *primary(void);
 
 typedef enum {
     TY_INT,
+    TY_CHAR,
     TY_PTR,
     TY_ARRAY,
 } TypeKind;
@@ -193,6 +194,7 @@ struct Type
 };
 
 Type *int_type(void);
+Type *char_type(void);
 Type *pointer_to(Type *base);
 Type *array_of(Type *base, int size);
 int size_of(Type *ty);

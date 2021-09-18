@@ -67,8 +67,14 @@ Var *push_var(Type *ty, char *name, bool is_local) {
 }
 
 Type *basetype(void) {
-    expect("int");
-    Type *ty = int_type();
+    Type *ty;
+    if (consume("char")) {
+        ty = char_type();
+    }
+    else {
+        expect("int");
+        ty = int_type();
+    }
 
     while (consume("*")) {
         ty = pointer_to(ty);
@@ -136,6 +142,10 @@ VarList *read_func_params(void) {
 // creates expr := assign
 Node *expr(void) {
     return assign();
+}
+
+bool is_typename(void) {
+    return peek("int") || peek("char");
 }
 
 /* stmt    = "return" expr ";"
@@ -221,7 +231,7 @@ Node *stmt(void) {
         return node;
     }
 
-    if(tok = peek("int")) {
+    if(is_typename()) {
         return declaration();
     }
 
