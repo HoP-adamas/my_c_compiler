@@ -3,6 +3,13 @@
 VarList *locals;
 VarList *globals;
 
+char *new_label(void) {
+    static int cnt = 0;
+    char buf[20];
+    sprintf(buf, ".Ldata.%d", cnt++);
+    return strndup(buf, 20);
+}
+
 // creates a new node
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
@@ -457,7 +464,8 @@ Node *func_args(void) {
     return head;
 }
 
-// primary = "(" expr ")" | ident func-args? | num
+// primary = "(" expr ")" | "sizeof" unary | ident func-args? | str | num
+// args = "(" ident ("," ident)* ")"
 Node *primary(void) {
     if (consume("sizeof")){
         return new_node(ND_SIZEOF, unary(), NULL);
@@ -484,6 +492,15 @@ Node *primary(void) {
             // var = push_var(strndup(tok->str, tok->len));
             error("undefined variable &s", tok->str);
         }
+        return new_node_Var(var);
+    }
+    tok = token;
+    if (tok->kind == TK_STR) {
+        token = token->next;
+        Type *ty = array_of(char_type(), tok->cont_len);
+        Var *var = push_var(ty, new_label(), false);
+        var->contents = tok->contents;
+        var->cont_len = tok->cont_len;
         return new_node_Var(var);
     }
     

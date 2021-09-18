@@ -36,6 +36,7 @@ char *strndup(char *str, int chars);
 typedef enum {
     TK_RESERVED,    // symbol
     TK_IDENT,       // identifier
+    TK_STR,         // string Token
     TK_NUM,         // Integer Token
     TK_EOF,         // Token of End Of File
 
@@ -50,6 +51,9 @@ struct Token {
     int val;        // the value of token when the kind is TK_NUM
     char *str;      // token string
     int len;        // length of token
+
+    char *contents; // contents of string token including '\0'
+    int cont_len;  //length of contents of string token
 };
 
 
@@ -90,6 +94,9 @@ struct Var {
     Type *ty;
 
     bool is_local;  // local or global
+
+    char *contents;
+    int cont_len;
 };
 
 typedef struct VarList VarList;
