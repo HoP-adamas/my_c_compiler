@@ -1,6 +1,7 @@
 # include "9cc.h"
 
 char *filename;
+char *user_input;
 
 char *strndup(char *str, int chars)
 {

@@ -3,6 +3,7 @@
 // the token we focus on
 Token *token;
 
+char *filename;
 char *user_input;
 
 

@@ -51,6 +51,7 @@ bool at_eof(void);
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 Token *tokenize(char *p);
 
+extern char *filename;
 extern char *user_input;
 extern Token *token;
 typedef struct Var Var;
@@ -180,10 +181,6 @@ void add_type(Program *prog);
 // codegen.c
 void gen(Node *node);
 void codegen(Program *prog);
-
-// the token we focus on
-
-extern char *filename;
 
 
 extern Function *prog;
