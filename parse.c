@@ -2,6 +2,7 @@
 
 VarList *locals;
 VarList *globals;
+VarList *scope;
 
 char *new_label(void) {
     static int cnt = 0;
@@ -36,16 +37,8 @@ Node *new_node_Var(Var *var) {
 // search variable by its name. if it is not be found, return NULL.
 Var *find_Var(Token *tok) {
 
-    // search from local variables
-    for (VarList *vl = locals; vl; vl = vl->next) {
-        Var *var = vl->var;
-        if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len)) {
-            return var;
-        }
-    }
-
-    // search from global variables
-    for (VarList *vl = globals; vl; vl = vl->next) {
+    // find a variable by its name.
+    for (VarList *vl = scope; vl; vl = vl->next) {
         Var *var = vl->var;
         if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len)) {
             return var;
@@ -69,6 +62,12 @@ Var *push_var(Type *ty, char *name, bool is_local) {
         vl->next = globals;
         globals = vl;
     }
+
+    VarList *sc = calloc(1, sizeof(VarList));
+    sc->var = var;
+    sc-> next = scope;
+    scope = sc;
+
     return var;
 
 }
@@ -226,10 +225,13 @@ Node *stmt(void) {
         head.next = NULL;
         Node *cur = &head;
 
+        VarList *sc = scope;
+
         while (!consume("}")) {
             cur->next = stmt();
             cur = cur->next;
         }
+        scope = sc;
 
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_BLOCK;
