@@ -34,8 +34,8 @@ Token *consume_ident(void) {
 // If the next token is the symbol we expect,
 // consumes one token else reports an error.
 void expect(char *op) {
-    if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len)) {
-        error_at(token->str, "next token is expected '%c'", op);
+    if (!peek(op)) {
+        error_tok(token, "next token is expected '%c'", op);
     }
     token = token->next;
 }
@@ -44,7 +44,7 @@ void expect(char *op) {
 // consumes one token and return this number else reports an error
 int expect_number(void) {
     if (token->kind != TK_NUM) {
-        error_at(token->str, "next token is expected a number");
+        error_tok(token, "next token is expected a number");
     }
     int val = token->val;
     token = token->next;
@@ -53,7 +53,7 @@ int expect_number(void) {
 
 char *expect_ident(void) {
     if (token->kind != TK_IDENT) {
-        error_at(token->str, "expected an identifier");
+        error_tok(token, "expected an identifier");
     }
     char *s = strndup(token->str, token->len);
     token = token->next;
@@ -201,6 +201,21 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        // Identifier multi letter
+        // rule 1: the first letter of an identifier does not a number
+        // rule 2: "_" is treated as an alphabet
+        // rule 3: after second letter, we can use alphabet and number
+
+        // check whether the first letter is alphabet
+        if (is_alpha(*p)) {
+            char *q = p++;
+            while (is_alnum(*p)) {
+                p++;
+            }
+            cur = new_token(TK_IDENT, cur, q, p - q);
+            continue;
+        }
+
         // String literal
         if (*p == '"') {
             cur = read_string_literal(cur, p);
@@ -216,24 +231,6 @@ Token *tokenize(char *p) {
             cur->len = p - q;   // length of Integer
             continue;
         }
-
-        // Identifier multi letter
-        // rule 1: the first letter of an identifier does not a number
-        // rule 2: "_" is treated as an alphabet
-        // rule 3: after second letter, we can use alphabet and number
-
-        // check whether the first letter is alphabet
-        if (is_alpha(*p)) {
-            char *q = p;
-            do {
-                p++;
-            }
-            while (is_alnum(*p));
-            cur = new_token(TK_IDENT, cur, q, p-q);
-            continue;
-        }
-
-        
 
         error_at(p, "invalid token");
     }

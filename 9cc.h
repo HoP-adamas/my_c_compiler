@@ -5,30 +5,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 
 
 typedef struct Type Type;
-typedef struct 
-{
-    void **data;
-    int capacity;
-    int len;
-} Vector;
 
-Vector *new_vec(void);
-void vec_push(Vector *v, void *elem);
-
-typedef struct 
-{
-    Vector *keys;
-    Vector *vals;
-} Map;
-
-Map *new_map(void);
-void map_put(Map *map, char *key, void *val);
-void *map_get(Map *map, char *key);
-
-char *strndup(char *str, int chars);
 
 
 
@@ -53,10 +34,47 @@ struct Token {
     int len;        // length of token
 
     char *contents; // contents of string token including '\0'
-    int cont_len;  //length of contents of string token
+    char cont_len;  //length of contents of string token
 };
 
+void error(char *fmt, ...);
+void error_at(char *loc, char *fmt, ...);
+void error_tok(Token *tok, char *fmt, ...);
 
+Token *peek(char *s);
+Token *consume(char *s);
+Token *consume_ident(void);
+void expect(char *op);
+int expect_number(void);
+char *expect_ident(void);
+bool at_eof(void);
+Token *new_token(TokenKind kind, Token *cur, char *str, int len);
+Token *tokenize(char *p);
+
+extern char *user_input;
+extern Token *token;
+typedef struct Var Var;
+
+struct Var {
+    char *name;     // the name of local variable
+    int offset;     // the offset from RBP
+    Type *ty;
+
+    bool is_local;  // local or global
+
+    char *contents;
+    int cont_len;
+};
+
+// Local variable
+
+
+typedef struct VarList VarList;
+
+struct VarList {
+    VarList *next;
+    Var *var;
+};
 
 // Kinds of node of abstruct syntax tree (AST)
 typedef enum {
@@ -79,32 +97,12 @@ typedef enum {
     ND_BLOCK,   // {...}
     ND_FUNCALL, // Function call
     ND_EXPR_STMT, // Expression statement
+    ND_STMT_EXPR, // Statement expression
     ND_ADDR,    // unary &
     ND_DEREF,   // unary *
     ND_NULL,    // Empty statement
     ND_SIZEOF,  // sizeof
 } NodeKind;
-
-// Local variable
-typedef struct Var Var;
-
-struct Var {
-    char *name;     // the name of local variable
-    int offset;     // the offset from RBP
-    Type *ty;
-
-    bool is_local;  // local or global
-
-    char *contents;
-    int cont_len;
-};
-
-typedef struct VarList VarList;
-
-struct VarList {
-    VarList *next;
-    Var *var;
-};
 
 typedef struct Node Node;
 
@@ -117,6 +115,7 @@ struct Node {
     int val;        // use only if kind is ND_NUM
     int offset;     // use only if kind is ND_VAR
     Var *var;
+    Token *tok;
 
     // "if" ( cond ) then "else" els
     // "for" ( init; cond; inc ) body
@@ -126,6 +125,8 @@ struct Node {
     Node *els;
     Node *init;
     Node *inc;
+
+     // Block or statement expression
     Node *body;
 
     // Function call
@@ -141,50 +142,18 @@ struct Function {
     Function *next;
     char *name;
     VarList *params;
-    VarList *locals;
     Node *node;
+    VarList *locals;
     int stack_size;
 };
 
-typedef struct
-{
+typedef struct {
     VarList *globals;
     Function *fns;
 } Program;
 
+Program *program();
 
-
-
-void error(char *fmt, ...);
-void error_at(char *loc, char *fmt, ...);
-Token *peek(char *s);
-Token *consume(char *s);
-Token *consume_ident(void);
-void expect(char *op);
-int expect_number(void);
-char *expect_ident(void);
-bool at_eof(void);
-Token *new_token(TokenKind kind, Token *cur, char *str, int len);
-Token *tokenize(char *p);
-
-// parse.c
-Var *find_Var(Token *tok);
-Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
-Node *new_node_num(int val);
-Node *new_node_Var(Var *var);
-Node *stmt(void);
-Program *program(void);
-Function *function(void);
-Node *declaration(void);
-Node *expr(void);
-Node *assign(void);
-Node *equality(void);
-Node *relational(void);
-Node *add(void);
-Node *mul(void);
-Node *unary(void);
-Node *postfix(void);
-Node *primary(void);
 
 typedef enum {
     TY_INT,
@@ -213,10 +182,33 @@ void gen(Node *node);
 void codegen(Program *prog);
 
 // the token we focus on
-extern Token *token;
 
-extern char *user_input;
+extern char *filename;
+
 
 extern Function *prog;
 
 extern VarList *locals;
+
+typedef struct 
+{
+    void **data;
+    int capacity;
+    int len;
+} Vector;
+
+Vector *new_vec(void);
+void vec_push(Vector *v, void *elem);
+
+typedef struct 
+{
+    Vector *keys;
+    Vector *vals;
+} Map;
+
+Map *new_map(void);
+void map_put(Map *map, char *key, void *val);
+void *map_get(Map *map, char *key);
+
+
+char *strndup(char *str, int chars);

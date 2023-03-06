@@ -12,7 +12,7 @@ void gen_addr(Node *node) {
         case ND_VAR: {
             Var *var = node->var;
             if (var->is_local) {
-                printf("  lea rax, [rbp-%d]\n", node->var->offset);
+                printf("  lea rax, [rbp-%d]\n", var->offset);
                 printf("  push rax\n");
             }
             else {
@@ -25,7 +25,7 @@ void gen_addr(Node *node) {
             return;
         }
     }
-    error("%s is not ans local value\n", node->var->name);
+    error_tok(node->tok, "not an local value\n");
     // if (node->kind != ND_VAR) {
     //     error("Substitution of the left value does not a variable. actual: %d", node->kind);
     // }
@@ -34,7 +34,7 @@ void gen_addr(Node *node) {
 
 void gen_lval(Node *node) {
     if (node->ty->kind == TY_ARRAY) {
-        error("%s is not an local value", node->var->name);
+        error_tok(node->tok, "not an local value");
     }
     gen_addr(node);
 }
@@ -87,19 +87,37 @@ void gen(Node *node) {
 
         store(node->ty);
         return;
+    case ND_ADDR: {
+        gen_addr(node->lhs);
+        return;
+    }
+    case ND_DEREF: {
+        gen(node->lhs);
+       if (node->ty->kind != TY_ARRAY) {
+           load(node->ty);
+       }
+        return;
+    }
     case ND_IF: {
         int cnt = label_count++;
-        gen(node->cond);
-        printf("  pop rax\n");
-        printf("  cmp rax, 0\n");
-        printf("  je .Lelse%d\n", cnt);
-        gen(node->then);
-        printf("  jmp .Lend%d\n", cnt);
-        printf(".Lelse%d:\n", cnt);
         if (node->els) {
+            gen(node->cond);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je  .Lelse%d\n", cnt);
+            gen(node->then);
+            printf("  jmp .Lend%d\n", cnt);
+            printf(".Lelse%d:\n", cnt);
             gen(node->els);
+            printf(".Lend%d:\n", cnt);
+        } else {
+            gen(node->cond);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je  .Lend%d\n", cnt);
+            gen(node->then);
+            printf(".Lend%d:\n", cnt);
         }
-        printf(".Lend%d:\n", cnt);
         return;
     }
     case ND_WHILE: {
@@ -108,8 +126,8 @@ void gen(Node *node) {
         gen(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lend%d\n", cnt);
-        gen(node->body);
+        printf("  je  .Lend%d\n", cnt);
+        gen(node->then);
         printf("  jmp .Lbegin%d\n", cnt);
         printf(".Lend%d:\n", cnt);
         return;
@@ -124,9 +142,9 @@ void gen(Node *node) {
             gen(node->cond);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je .Lend%d\n", cnt);
+            printf("  je  .Lend%d\n", cnt);
         }
-        gen(node->body);
+        gen(node->then);
         if (node->inc) {
             gen(node->inc);
         }
@@ -135,6 +153,11 @@ void gen(Node *node) {
         return;
     }
     case ND_BLOCK:
+        for (Node *n = node->body; n; n = n->next) {
+            gen(n);
+        }
+        return;
+    case ND_STMT_EXPR:
         for (Node *n = node->body; n; n = n->next) {
             gen(n);
         }
@@ -166,17 +189,6 @@ void gen(Node *node) {
         printf("  add rsp, 8\n");
         printf(".Lend%d:\n",cnt);
         printf("  push rax\n");
-        return;
-    }
-    case ND_DEREF: {
-        gen(node->lhs);
-       if (node->ty->kind != TY_ARRAY) {
-           load(node->ty);
-       }
-        return;
-    }
-    case ND_ADDR: {
-        gen_addr(node->lhs);
         return;
     }
     case ND_RETURN:
@@ -239,17 +251,6 @@ void gen(Node *node) {
     printf("  push rax\n");
 }
 
-void load_arg(Var *var, int idx) {
-    int sz = size_of(var->ty);
-    if (sz == 1) {
-        printf("  mov [rbp-%d], %s\n", var->offset, argreg1[idx]);
-    }
-    else {
-        assert(sz == 8);
-        printf("  mov [rbp-%d], %s\n", var->offset, argreg8[idx]);
-    }
-}
-
 void emit_data(Program *prog) {
     printf(".data\n");
 
@@ -264,6 +265,17 @@ void emit_data(Program *prog) {
             printf("  .byte %d\n", var->contents[i]);
         }
         
+    }
+}
+
+void load_arg(Var *var, int idx) {
+    int sz = size_of(var->ty);
+    if (sz == 1) {
+        printf("  mov [rbp-%d], %s\n", var->offset, argreg1[idx]);
+    }
+    else {
+        assert(sz == 8);
+        printf("  mov [rbp-%d], %s\n", var->offset, argreg8[idx]);
     }
 }
 

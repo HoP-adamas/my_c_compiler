@@ -82,18 +82,13 @@ void visit(Node *node) {
                 node->rhs = tmp;
             }
             if (node->rhs->ty->base) {
-                error("invalid pointer arithmetic operands");
+                error_tok(node->tok, "invalid pointer arithmetic operands");
             }
             node->ty = node->lhs->ty;
             return;
         case ND_SUB:
             if (node->rhs->ty->base) {
-                Node *tmp = node->lhs;
-                node->lhs = node->rhs;
-                node->rhs = tmp;
-            }
-            if (node->rhs->ty->base) {
-                error("invalid pointer arithmetic operands");
+                error_tok(node->tok, "invalid pointer arithmetic operands");
             }
             node->ty = node->lhs->ty;
             return;
@@ -109,7 +104,7 @@ void visit(Node *node) {
             return;
         case ND_DEREF:
             if (!node->lhs->ty->base) {
-                error("invalid pointer dereference %s", node->lhs->var->name);
+                error_tok(node->tok, "invalid pointer dereference");
             }
             node->ty = node->lhs->ty->base;
             return;
@@ -119,6 +114,14 @@ void visit(Node *node) {
             node->val = size_of(node->lhs->ty);
             node->lhs = NULL;
             return;
+        case ND_STMT_EXPR: {
+            Node *last = node->body;
+            while (last->next) {
+                last = last->next;
+            }
+            node->ty = last->ty;
+            return;
+        }
 
 
         

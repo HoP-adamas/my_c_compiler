@@ -27,7 +27,7 @@ assert() {
     fi
 }
 
-# assert 0 'int main() { return 0; }'
+assert 0 'int main() { return 0; }'
 # assert 42 'int main() { return 42; }'
 # assert 21 'int main() { return 5+20-4; }'
 # assert 41 'int main() { return  12 + 34 - 5 ; }'
@@ -164,9 +164,9 @@ assert() {
 # assert 0 'int main() { return "abc"[3]; }'
 # assert 4 'int main() { return sizeof("abc"); }'
 
-# assert 2 'int main() { /* return 1; */ return 2; }'
-# assert 2 'int main() { // return 1;
-# return 2; }'
+assert 2 'int main() { /* return 1; */ return 2; }'
+assert 2 'int main() { // return 1;
+return 2; }'
 assert 1 'int main() {char *s="abc"; printf("%s", s); return 1;}'
 
 assert 2 'int main() { int x=2; { int x=3; } return x; }'
@@ -186,5 +186,10 @@ assert 0 'int main() { return "\0"[0]; }'
 assert 106 'int main() { return "\j"[0]; }'
 assert 107 'int main() { return "\k"[0]; }'
 assert 108 'int main() { return "\l"[0]; }'
+
+assert 0 'int main() { return ({ 0; }); }'
+assert 2 'int main() { return ({ 0; 1; 2; }); }'
+assert 1 'int main() { ({ 0; return 1; 2; }); return 3; }'
+assert 3 'int main() { return ({ int x=3; x; }); }'
 
 echo -e "\e[32mOK\e[m"
