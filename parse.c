@@ -181,8 +181,13 @@ Type *struct_decl(void) {
 
     int offset = 0;
     for (Member *mem = ty->members; mem; mem = mem->next) {
+        offset = align_to(offset, mem->ty->align);
         mem->offset = offset;
         offset += size_of(mem->ty);
+
+        if (ty->align < mem->ty->align) {
+            ty->align = mem->ty->align;
+        }
     }
 
     return ty;

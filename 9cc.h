@@ -173,6 +173,7 @@ typedef enum {
 struct Type
 {
     TypeKind kind;
+    int align;          // alignment
     Type *base;         // pointer or array
     size_t array_size;  // array
     Member *members;    // struct
@@ -186,6 +187,7 @@ struct Member {
     int offset;
 };
 
+int align_to(int n, int align);
 Type *int_type(void);
 Type *char_type(void);
 Type *pointer_to(Type *base);
