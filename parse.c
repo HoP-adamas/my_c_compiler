@@ -1,8 +1,17 @@
 #include "9cc.h"
 
+
+// Scope for struct tags
+typedef struct TagScope TagScope;
+struct TagScope {
+    TagScope *next;
+    char *name;
+    Type *ty;
+};
 VarList *locals;
 VarList *globals;
 VarList *scope;
+TagScope *tag_scope;
 
 // search variable by its name. if it is not be found, return NULL.
 Var *find_Var(Token *tok) {
@@ -12,6 +21,15 @@ Var *find_Var(Token *tok) {
         Var *var = vl->var;
         if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len)) {
             return var;
+        }
+    }
+    return NULL;
+}
+
+TagScope *find_tag(Token *tok) {
+    for(TagScope *sc = tag_scope; sc; sc = sc->next) {
+        if (strlen(sc->name) == tok->len && !memcmp(tok->str, sc->name, tok->len)) {
+            return sc;
         }
     }
     return NULL;
@@ -74,6 +92,14 @@ Var *push_var(Type *ty, char *name, bool is_local) {
 
     return var;
 
+}
+
+void push_tag_scope(Token *tok, Type *ty) {
+    TagScope *sc = calloc(1, sizeof(TagScope));
+    sc->next = tag_scope;
+    sc->name = strndup(tok->str, tok->len);
+    sc->ty = ty;
+    tag_scope = sc;
 }
 
 char *new_label(void) {
@@ -164,6 +190,16 @@ Type *read_type_suffix(Type *base) {
 
 Type *struct_decl(void) {
     expect("struct");
+
+    // Read a struct tag.
+    Token *tag = consume_ident();
+    if (tag && !peek("{")) {
+        TagScope *sc = find_tag(tag);
+        if (!sc) {
+            error_tok(tag, "unknown struct type");
+        }
+        return sc->ty;
+    }
     expect("{");
 
     Member head;
@@ -188,6 +224,10 @@ Type *struct_decl(void) {
         if (ty->align < mem->ty->align) {
             ty->align = mem->ty->align;
         }
+    }
+
+    if (tag) {
+        push_tag_scope(tag, ty);
     }
 
     return ty;
@@ -265,9 +305,13 @@ void global_var(void) {
 }
 
 // declaration := basetype ident ("[" num "]")* ("=" expr) ";"
+//              | basetype ";"
 Node *declaration(void) {
     Token *tok = token;
     Type *ty = basetype();
+    if (consume(";")) {
+        return new_node(ND_NULL, tok);
+    }
     char *name = expect_ident();
     ty = read_type_suffix(ty);
     Var *var = push_var(ty, name, true);
@@ -357,13 +401,15 @@ Node *stmt(void) {
         head.next = NULL;
         Node *cur = &head;
 
-        VarList *sc = scope;
+        VarList *sc_var = scope;
+        TagScope *sc_tag = tag_scope;
 
         while (!consume("}")) {
             cur->next = stmt();
             cur = cur->next;
         }
-        scope = sc;
+        scope = sc_var;
+        tag_scope = sc_tag;
 
         Node *node = new_node(ND_BLOCK, tok);
         node->body = head.next;
@@ -521,7 +567,8 @@ Node *postfix(void) {
 //
 // Statement expression is a GNU C extension.
 Node *stmt_expr(Token *tok) {
-    VarList *sc = scope;
+    VarList *sc_var = scope;
+    TagScope *sc_tag = tag_scope;
 
     Node *node = new_node(ND_STMT_EXPR, tok);
     node->body = stmt();
@@ -533,7 +580,8 @@ Node *stmt_expr(Token *tok) {
     }
     expect(")");
 
-    scope = sc;
+    scope = sc_var;
+    tag_scope = sc_tag;
     if (cur->kind != ND_EXPR_STMT)
     error_tok(cur->tok, "stmt expr returning void is not supported");
     *cur = *cur->lhs;
