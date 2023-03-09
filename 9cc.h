@@ -163,7 +163,9 @@ Program *program();
 
 
 typedef enum {
+    TY_SHORT,
     TY_INT,
+    TY_LONG,
     TY_CHAR,
     TY_PTR,
     TY_ARRAY,
@@ -188,7 +190,9 @@ struct Member {
 };
 
 int align_to(int n, int align);
+Type *short_type(void);
 Type *int_type(void);
+Type *long_type(void);
 Type *char_type(void);
 Type *pointer_to(Type *base);
 Type *array_of(Type *base, int size);
