@@ -11,7 +11,7 @@ Type *new_type(TypeKind kind, int align) {
     return ty;
 }
 Type *int_type(void) {
-    return new_type(TY_INT, 8);
+    return new_type(TY_INT, 4);
 }
 
 Type *char_type(void) {
@@ -34,7 +34,7 @@ Type *array_of(Type *base, int size) {
 int size_of(Type *ty) {
     switch (ty->kind) {
         case TY_INT:
-            return 8;
+            return 4;
         case TY_PTR:
             return 8;
         case TY_CHAR:
