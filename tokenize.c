@@ -138,7 +138,9 @@ bool is_alnum(char c) {
 
 char *starts_with_reserved(char *p) {
     // keyword
-    static char *kw[] = {"return", "if", "else", "while", "for", "short", "int", "long", "sizeof", "char", "struct", "typedef"};
+    static char *kw[] = {"return", "if", "else", "while", "for",
+                            "short", "int", "long", "sizeof",
+                            "char", "struct", "typedef", "void"};
 
     for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++) {
         int len = strlen(kw[i]);

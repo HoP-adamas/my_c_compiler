@@ -188,12 +188,15 @@ Program *program(void) {
 }
 
 // type-specifier = builtin-type | struct-decl | typedef-name
-// builtin-type   = "char" | "short" | "int" | "long"
+// builtin-type   = "void" | "char" | "short" | "int" | "long"
 Type *type_specifier(void) {
     if (!is_typename()) {
         error_tok(token, "typename expected");
     }
 
+    if (consume("void")) {
+        return void_type();
+    }
     if (consume("char")) {
         return char_type();
     }
@@ -381,12 +384,16 @@ void global_var(void) {
 Node *declaration(void) {
     Token *tok = token;
     Type *ty = type_specifier();
+
     if (consume(";")) {
         return new_node(ND_NULL, tok);
     }
     char *name = NULL;
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
+    if (ty->kind == TY_VOID) {
+        error_tok(tok, "variable declared void");
+    }
     Var *var = push_var(ty, name, true);
 
     if (consume(";")) {
@@ -406,7 +413,7 @@ Node *read_expr_stmt() {
 }
 
 bool is_typename(void) {
-    return peek("short") || peek("int") || peek("long") || peek("char") || peek("struct") || find_typedef(token);
+    return peek("void") || peek("short") || peek("int") || peek("long") || peek("char") || peek("struct") || find_typedef(token);
 }
 
 // stmt = "return" expr ";"
