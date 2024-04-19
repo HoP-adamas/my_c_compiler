@@ -107,7 +107,7 @@ Var *push_var(Type *ty, char *name, bool is_local) {
         vl->next = locals;
         locals = vl;
     }
-    else {
+    else if (ty->kind != TY_FUNC) {
         vl->next = globals;
         globals = vl;
     }
@@ -340,7 +340,10 @@ Function *function(void) {
 
     Type *ty = type_specifier();
     char *name = NULL;
-    declarator(ty, &name);
+    ty = declarator(ty, &name);
+
+    push_var(func_type(ty), name, false);
+
     Function *fn = calloc(1, sizeof(Function));
     fn->name = name;
     expect("(");
@@ -715,6 +718,16 @@ Node *primary(void) {
             Node *node = new_node(ND_FUNCALL, tok);
             node->funcname = strndup(tok->str, tok->len);
             node->args = func_args();
+
+            VarScope *sc = find_Var(tok);
+            if (sc) {
+                if (!sc->var || sc->var->ty->kind != TY_FUNC) {
+                    error_tok(tok, "not a function");
+                }
+                node->ty = sc->var->ty->return_ty;
+            } else {
+                node->ty = int_type();
+            }
             return node;
         }
 
