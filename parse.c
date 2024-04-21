@@ -302,6 +302,23 @@ Type *declarator(Type *ty, char **name) {
     return type_suffix(ty);
 }
 
+// abstract-declarator = "*"* ("(" abstract-declarator ")")? type-suffix
+Type *abstract_declarator(Type *ty) {
+    while (consume("*")) {
+        ty = pointer_to(ty);
+    }
+
+    if (consume("(")) {
+        Type *placeholder = calloc(1, sizeof(Type));
+        Type *new_ty = abstract_declarator(placeholder);
+        expect(")");
+        *placeholder = *type_suffix(ty);
+        return new_ty;
+    }
+
+    return type_suffix(ty);
+}
+
 
 
 // type-suffix = ("[" num "]" type-suffix)?
@@ -313,6 +330,12 @@ Type *type_suffix(Type *ty) {
     expect("]");
     ty = type_suffix(ty);
     return array_of(ty, sz);
+}
+
+Type *type_name(void) {
+    Type *ty = type_specifier();
+    ty = abstract_declarator(ty);
+    return type_suffix(ty);
 }
 
 Type *struct_decl(void) {
@@ -763,6 +786,7 @@ Node *func_args(void) {
 // primary = "(" "{" stmt-expr-tail
 //         | "(" expr ")"
 //         | "sizeof" unary
+//         | "sizeof" "(" type-name ")"
 //         | ident func-args?
 //         | str
 //         | num
@@ -777,7 +801,16 @@ Node *primary(void) {
     return node;
   }
   
-    if (tok = consume("sizeof")){
+    if (tok = consume("sizeof")) {
+        if (consume("(")) {
+            if (is_typename())
+            {
+                Type *ty = type_name();
+                expect(")");
+                return new_node_num(size_of(ty), tok);
+            }
+            token = tok->next;
+        }
         return new_unary(ND_SIZEOF, unary(), tok);
     }
 
