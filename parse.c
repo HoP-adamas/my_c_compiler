@@ -75,7 +75,7 @@ Node *new_unary(NodeKind kind, Node *expr, Token *tok) {
 }
 
 // creates a new node whose kind is ND_NUM
-Node *new_node_num(int val, Token *tok) {
+Node *new_node_num(long val, Token *tok) {
     Node *node = new_node(ND_NUM, tok);
     node->val = val;
     return node;

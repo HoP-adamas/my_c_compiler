@@ -92,11 +92,11 @@ void expect(char *op) {
 
 // If the next token  is a number,
 // consumes one token and return this number else reports an error
-int expect_number(void) {
+long expect_number(void) {
     if (token->kind != TK_NUM) {
         error_tok(token, "next token is expected a number");
     }
-    int val = token->val;
+    long val = token->val;
     token = token->next;
     return val;
 }
