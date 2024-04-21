@@ -15,6 +15,10 @@ Type *void_type(void) {
     return new_type(TY_VOID, 1);
 }
 
+Type *bool_type(void) {
+    return new_type(TY_BOOL, 1);
+}
+
 Type *short_type(void) {
     return new_type(TY_SHORT, 2);
 }
@@ -63,6 +67,8 @@ int size_of(Type *ty) {
         case TY_PTR:
             return 8;
         case TY_CHAR:
+            return 1;
+        case TY_BOOL:
             return 1;
         case TY_ARRAY:
             return size_of(ty->base) *ty->array_size;
